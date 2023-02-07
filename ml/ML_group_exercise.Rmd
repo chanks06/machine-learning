@@ -1,0 +1,219 @@
+---
+title: "ML4_group_activity"
+output: pdf_document
+date: "2023-02-01"
+---
+
+## Group exercise
+
+Use the top words by province to...
+
+1. Engineer more features that capture the essence of Casablanca, Marlborough and New York
+2. Look for difference between California and Oregon
+3. Use what you find to run naive Bayes models that achieve a Kappa that approaches 0.5
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+knitr::opts_knit$set(root.dir = "/Users/charleshanks/Desktop/MSDS/SPRING_23/ML")
+library(tidyverse)
+library(caret)
+library(naivebayes)
+library(fastDummies)
+
+wine = read_rds("pinot.rds")
+names(wine)[names(wine) == 'id'] = 'ID'
+```
+
+
+
+```{r}
+wine
+```
+
+Document term matrix: 
+
+```{r}
+df <- wine %>%
+  unnest_tokens(word, description) %>%
+  anti_join(stop_words) %>% # get rid of stop words
+  filter(word != "wine") %>%
+  filter(word != "pinot") %>%
+  count(ID, word) %>% 
+  group_by(ID) %>% 
+  mutate(freq = n/sum(n)) %>% 
+  mutate(exists = (n>0)) %>% 
+  ungroup %>% 
+  group_by(word) %>% 
+  mutate(total = sum(n))
+```
+
+Top words in database:
+
+```{r}
+df %>% 
+  count(word) %>%
+  arrange(desc(n)) %>% 
+  head(25)
+```
+
+
+
+
+Combining words with over 1000 occurences in dataset with ID and province from wine 
+```{r}
+wino <- df %>% 
+  filter(total > 800) %>% 
+  pivot_wider(id_cols = ID, names_from = word, values_from = exists, values_fill = list(exists=0)) %>% 
+  merge(select(wine,ID, province), all.y=TRUE) #%>% 
+  #drop_na()
+
+#wino <- merge(select(wine,ID, province), wino, by="ID", all.x=TRUE) %>%
+#  arrange(ID)
+#View(wino)
+wino <- replace(wino, is.na(wino), FALSE)
+```
+run model
+```{r}
+set.seed(504)
+wine_index <- createDataPartition(wino$province, p = 0.80, list = FALSE)
+train <- wino[ wine_index, ]
+test <- wino[-wine_index, ]
+
+fit <- train(province ~ .,
+             data = train, 
+             method = "naive_bayes",
+             tuneGrid = expand.grid(usekernel = c(T,F), laplace = T, adjust = T),
+             metric = "Kappa",
+             trControl = trainControl(method = "cv"))
+
+confusionMatrix(predict(fit, test),factor(test$province))
+
+#kappa = .39
+```
+
+## Maybe we can find words associated with our sparse provinces?
+
+```{r}
+df %>% 
+  left_join(select(wine, ID, province), by = "ID") %>% 
+  count(province, word) %>%
+  group_by(province) %>% 
+  top_n(5,n) %>% 
+  arrange(province, desc(n))
+
+```
+
+
+#adding interaction terms for our sparse provinces 
+```{r}
+#adding interaction terms
+wino = wino %>% mutate(cv_flavors_aromas = flavors*aromas, 
+                       m_drink_cherry = drink*cherry, 
+                       ny_cherry_noir = cherry*noir)
+
+#adding fruit*chocolate for oregon:
+choc = wine %>% mutate(
+    choc = str_detect(description, "chocolate")) %>% 
+    select(ID,choc)
+
+#taking out interactions terms: 
+wino = wino %>% select(-cv_flavors_aromas,-m_drink_cherry,-ny_cherry_noir)
+
+#adding new feature from wine ds: 
+noir = wine %>% mutate(
+    noir = str_detect(description, "noir")) %>% 
+    select(ID,noir)
+
+#merging new feature with wino 
+wino = wino %>% 
+  left_join(noir, by = "ID")
+
+concentrated = wine %>% mutate(
+    concentrated = str_detect(description, "concentrated")) %>% 
+    select(ID,concentrated)
+
+#merging new feature with wino 
+wino = wino %>% 
+  left_join(choc, by = "ID")
+
+
+```
+
+adding texture, aging
+```{r}
+aging_texture = wine %>% mutate(
+    aging = str_detect(description, "aging"),
+    texture = str_detect(description, "texture")) %>% 
+    select(ID,aging,texture)
+
+#merging new feature with wino 
+wino = wino %>% 
+  left_join(aging_texture, by = "ID")
+```
+
+
+run model with interaction terms : 
+```{r}
+wine_index <- createDataPartition(wino$province, p = 0.80, list = FALSE)
+train <- wino[ wine_index, ]
+test <- wino[-wine_index, ]
+
+fit <- train(province ~ .,
+             data = train, 
+             method = "naive_bayes",
+             tuneGrid = expand.grid(usekernel = c(T,F), laplace = T, adjust = T),
+             metric = "Kappa",
+             trControl = trainControl(method = "cv"))
+
+confusionMatrix(predict(fit, test),factor(test$province))
+```
+
+differentiating ny from california
+
+```{r}
+wtxt %>% 
+    filter(province=="New_York" | province=="California") %>% 
+    filter(!(word %in% c("wine","pinot","drink","noir","vineyard","palate","notes","flavors","bottling"))) %>% 
+    filter(total > 400) %>% 
+    group_by(province, word) %>%
+    count() %>% 
+    group_by(province) %>% 
+    mutate(proportion = n / sum(n)) %>% 
+    pivot_wider(id_cols = word, names_from = province, values_from = proportion) %>% 
+    ggplot(aes(x = New_York, y = California, color = abs(New_York - California))) +
+    geom_abline(color = "gray40", lty = 2) +
+    geom_jitter(alpha = 0.1, size = 2.5, width = 0.3, height = 0.3) +
+    geom_text(aes(label = word), check_overlap = TRUE, vjust = 1.5) +
+    scale_x_log10(labels = percent_format()) +
+    scale_y_log10(labels = percent_format()) +
+    scale_color_gradient(limits = c(0, 0.001), low = "darkslategray4", high = "gray75") +
+    theme(legend.position="none") +
+    labs(x = "New York", y = "California", title = "Words describing Pinot Noir from NY and CA")
+```
+new york from casablanca
+```{r}
+wtxt %>% 
+    filter(province=="New_York" | province=="Casablanca_Valley") %>% 
+    filter(!(word %in% c("wine","pinot","drink","noir","vineyard","palate","notes","flavors","bottling"))) %>% 
+    filter(total > 400) %>% 
+    group_by(province, word) %>%
+    count() %>% 
+    group_by(province) %>% 
+    mutate(proportion = n / sum(n)) %>% 
+    pivot_wider(id_cols = word, names_from = province, values_from = proportion) %>% 
+    ggplot(aes(x = New_York, y = Casablanca_Valley, color = abs(New_York - Casablanca_Valley))) +
+    geom_abline(color = "gray40", lty = 2) +
+    geom_jitter(alpha = 0.1, size = 2.5, width = 0.3, height = 0.3) +
+    geom_text(aes(label = word), check_overlap = TRUE, vjust = 1.5) +
+    scale_x_log10(labels = percent_format()) +
+    scale_y_log10(labels = percent_format()) +
+    scale_color_gradient(limits = c(0, 0.001), low = "darkslategray4", high = "gray75") +
+    theme(legend.position="none") +
+    labs(x = "New York", y = "Casablanca_Valley", title = "Words describing Pinot Noir from NY and Casablanca_Valley")
+```
+```{r}
+
+
+```
+
+

@@ -1,0 +1,581 @@
+---
+title: "Feature Engineering I & Variable Selection"
+author: "Hendrik Orem, Ph.D., with thanks to Jameson Watts"
+output:
+  powerpoint_presentation:
+    df_print: kable
+    slide_level: 2
+    reference_doc: Template.potx
+  ioslides_presentation: default
+  beamer_presentation: default
+---
+
+## Agenda
+
+1. Review of Homework 1
+2. Feature Engineering I
+3. Dinner Break
+4. The Caret framework
+5. Vocabulary
+
+## Setup
+
+```{r setup, message=FALSE, warning=FALSE}
+knitr::opts_chunk$set(echo = TRUE, message = FALSE, warning = FALSE)
+knitr::opts_knit$set(root.dir = "/Users/charleshanks/Desktop/MSDS/SPRING_23/ML")
+library(tidyverse)
+wine = read_rds("wine.rds")
+
+```
+
+# Basic feature engineering
+
+## Exercise (20m)
+
+1. Gather in groups
+2. Identify 3 "interesting" features of the wine dataset
+3. **Bonus** Identify the wine variety (or varieties) that Roger Voss seems to dislike compared to the other critics
+
+```{r}
+wine %>% group_by(region_1, region_2) %>% summarize(n = n())
+
+as.integer(unique(wine$region_1) == unique(wine$region_2))
+wine
+wine$points_per_price = wine$price/wine$points
+wine %>% group_by(year) %>% summarize()
+
+wine %>% 
+  mutate(cherry=as.integer(str_detect(description,"[Cc]herry")))
+
+min(wine$points)
+
+wine$under_10 = as.integer(wine$price < 10)
+
+wine$under_10
+
+wine
+
+wine %>% filter(wine$under_10 == 1) %>% 
+  group_by(country) %>% 
+    summarize(avg_points = mean(points)) %>% 
+      arrange(desc(avg_points))
+
+#bonus question: what variety of wines did roger voss dislike? 
+
+wine %>%filter(taster_name == "Roger Voss") %>% group_by(variety) %>% summarize(avg_points = mean(points), n = n()) %>% arrange(avg_points) %>% arrange(n)
+
+wine$voss = as.integer(wine$taster_name == "Roger Voss")
+ifelse(voss==1 )
+
+
+```
+
+```{r}
+#Orem's example of pinot gris as a variety of wine that roger vozz dislikes more than other critics
+wine %>%
+  mutate(roger=taster_name=="Roger Voss") %>%
+  mutate(pinot_gris=variety=="Pinot Gris") %>%
+  drop_na(roger) %>%
+  group_by(roger, pinot_gris) %>%
+  summarise(points = mean(points)) %>%
+  ggplot() +
+  aes(x = pinot_gris, y = points, color = roger) +
+  geom_line(aes(group = roger)) +
+  geom_point()
+
+#my chosen variety: grenache
+wine %>% 
+  mutate(roger =taster_name == "Roger Voss", 
+         grenache = variety == "Grenache") %>% 
+        drop_na(roger) %>% 
+        group_by(roger, grenache) %>% 
+        summarize(avg_points = mean(points)) %>% 
+    ggplot(aes(x = grenache, y = avg_points, color = roger)) +   
+    geom_line(aes(group = roger)) + 
+    geom_point()
+```
+
+
+
+
+
+## Categorical vs. Continuous Variables
+
+- What is a categorical variable?
+- What is a continuous variable?
+- Why do we need to "look" at the data before modeling it?
+
+## Categorical Example 1
+
+```{r echo=T}
+# Roger Voss
+wine %>%
+mutate(roger=taster_name=="Roger Voss") %>%
+mutate(pinot_gris=variety=="Pinot Gris") %>%
+drop_na(roger) %>%
+group_by(roger, pinot_gris) %>%
+summarise(points = mean(points)) %>%
+ggplot() +
+aes(x = pinot_gris, y = points, color = roger) +
+geom_line(aes(group = roger)) +
+geom_point()
+```
+
+## Categorical Example 2
+
+```{r echo=T}
+wine %>% 
+  filter(province=="Oregon") %>% 
+  group_by(year) %>% 
+  summarise(price=mean(price)) %>% 
+  ggplot(aes(year,price))+
+  geom_line()+
+  labs(title = "Oregon wine over the years")
+```
+
+
+## Categorical Example 2
+
+```{r echo=T}
+wine %>% 
+  filter(province=="Oregon") %>% 
+  group_by(year) %>% 
+  summarise(points=mean(points)) %>% 
+  ggplot(aes(year,points))+
+  geom_line()+
+  labs(title = "Oregon wine over the years")
+```
+
+
+
+## Exercise (15 min)
+1. Group by winery and year to find the average score and number of reviews per winery per year.
+2. Calculate the year-on-year change in score for each winery.
+3. How might you use this in prediction? What kind of problem might it help with?
+
+## Year-on-Year Change Example
+
+```{r echo=T}
+# Your code here :D
+wine
+wine %>% group_by(winery, year) %>% summarize(avg_score = mean(points), num_review = n()) %>% 
+  select(year, winery, num_review, avg_score) %>%
+  arrange(winery, year) %>% 
+  mutate(yoy_change = avg_score -lag(avg_score))
+
+#Orem's code
+wine %>%
+  group_by(winery, year) %>%
+  summarize(avg_score=mean(points), num_reviews=n_distinct(id)) %>%
+  select(year, winery, num_reviews, avg_score) %>%
+  arrange(winery, year) %>%
+  mutate(score_change = avg_score - lag(avg_score)) %>%
+  View()
+
+
+
+```
+
+
+## Encoding categorical features: few dummies
+
+```{r}
+#Orem's code: 
+library(fastDummies)
+wine %>% 
+  select(taster_name) %>% 
+  dummy_cols() %>% 
+  select(1:4) %>% 
+  head()
+
+#my code - creating a feature for each year in dataset: 
+wine %>% 
+  select(year) %>% 
+  dummy_cols()
+
+?dummy_cols()
+```
+
+## Encoding categorical features: many dummies
+
+```{r}
+wine %>% 
+  select(variety) %>%
+  mutate(variety=fct_lump(variety,4)) %>%
+  dummy_cols() %>% 
+  head()
+
+```
+
+## Other types of engineered categorical features...
+
+- Words or phrases in text
+- A given time period
+- An arbitrary numerical cut-off
+- Demographic variables
+- Etc.
+
+## What about numerical features?
+
+```{r echo=F}
+wine %>%
+  ggplot(aes(price))+
+    geom_histogram()
+```
+
+## Take the natural log
+
+```{r echo=F}
+wine %>%
+  ggplot(aes(log(price)))+
+    geom_histogram()
+```
+
+## Engineering numeric features: Standardizing
+
+- mean-centering $x-\bar{x}$
+- scaling: $x/std(x)$
+
+...allows for common scale across variables. Also helps reduce bias when interactions are included (i.e. eliminates variance inflation).
+
+And there are [many other transformations](http://www.feat.engineering/numeric-one-to-many.html) that you can read about.
+
+A few more to mention: 
+
+- YoY, QoQ, etc. (absolute and percent)
+
+- log
+
+- polynomial transforms
+
+- lags!
+
+wine %>% mutate_at("points", list(normalized = ~(scale(.) %>% as.vector))) %>% View()
+```{r}
+wine %>% mutate_at("points", list(normalized = ~(scale(.) %>% as.vector))) %>% View()
+?mutate_at()
+```
+
+
+
+## Interaction effects
+
+[This chapter](http://www.feat.engineering/detecting-interaction-effects.html) has a good overview of interactions. 
+
+- start with domain knowledge
+- use visualizations
+- 3-way interactions exist, but are rare and sometimes hard to explain
+
+## Dinner (and virtual high fives)
+
+
+
+# The 'caret' package
+
+## Philosophy
+
+
+
+## Types of resampling
+
+- [V-fold Cross-Validation](http://www.feat.engineering/resampling.html#cv)
+- [Monte Carlo Cross-Validation](http://www.feat.engineering/resampling.html#monte-carlo-cross-validation)
+- [The Bootstrap](http://www.feat.engineering/resampling.html#the-bootstrap)
+
+## Typical setup
+
+```{r}
+library(caret)
+wino <- wine %>% ## look ma, engineered features!
+  mutate(fr=(country=="France")) %>%
+  mutate(cab=str_detect(variety,"Cabernet")) %>% 
+  mutate(lprice=log(price)) %>% 
+  drop_na(fr, cab) %>% 
+  select(lprice, points, fr, cab)
+
+wine_index <- createDataPartition(wino$lprice, p = 0.8, list = FALSE)
+wino_tr <- wino[ wine_index, ]
+wino_te <- wino[-wine_index, ]
+
+control <- trainControl(method="repeatedcv", number=5, repeats=3)
+
+m1 <- train(lprice ~ .,
+                data = wino_tr, 
+                method = "lm",
+                trControl = control)
+
+
+
+
+```
+
+Follow [this link](https://topepo.github.io/caret) for the full documentation on caret.
+
+
+## RMSE outputs
+
+```{r}
+print(m1$resample)
+```
+
+## Train vs. test
+
+```{r}
+m1
+```
+
+## Train vs. test
+
+```{r}
+wine_pred <- predict(m1, wino_te)
+postResample(pred=wine_pred, obs = wino_te$lprice)
+#calculating rmse with out of sample data 
+```
+
+
+## Exercise (30-40 minutes)
+
+1. Gather in groups
+2. Create 5-10 new features (in addition to points)
+3. Create training and test data
+4. Use your new predictors to train a linear regression model for log(price)
+5. Report RMSE on test set and the cross-validated score.
+6. Keep tweaking/engineering new features to lower the RMSE. 
+7. Should you focus on the CV score or the test score when tweaking to optimize score?
+8. Does it make a difference if you use standardized points instead of just points?
+
+```{r}
+wine
+wino <- wine %>% 
+  mutate(fr=(country=="France"),
+       cab=str_detect(variety,"Cabernet"),
+       over_20 = price > 20,
+       napa = str_detect(title, "Napa Valley"),
+       lprice=log(price)) %>%
+drop_na(fr,cab,over_20,lprice,napa) %>% 
+select(lprice, points, fr, cab, over_20, napa)
+
+
+
+wino_index <- createDataPartition(wino$lprice, p = 0.8, list = FALSE)
+wino_index
+
+wino_train <- wino[ wino_index, ]
+wino_test <- wino[-wino_index, ]
+
+control <- trainControl(method="repeatedcv", number=5, repeats=3)
+
+m4 <- train(lprice ~ .,
+  data = wino_train,
+  method = "lm",
+  trControl = control)
+
+print(m4$resample)
+
+#applying model to predict using test data (not yet touched!)
+wino_pred <- predict(m4, wino2_test)
+#result of comparing how model predict vs. the lprice of wino2_test data 
+postResample(pred=wino_pred, obs = wino2_test$lprice)
+
+importance <- varImp(m4, scale=TRUE)
+importance
+# plot importance
+plot(importance)
+
+
+
+
+
+
+```
+
+
+
+
+# Feature selection
+
+## Stepwise selection is bad
+
+Harrell (2015) provides a comprehensive indictment of the method that can be encapsulated by the statement:
+
+> **“… if this procedure had just been proposed as a statistical method, it would most likely be rejected because it violates every principle of statistical estimation and hypothesis testing.”**
+
+&nbsp;
+Reference: Harrell, F. 2015. Regression Modeling Strategies. Springer.
+
+## Engineer 9 features
+
+```{r}
+wino <- wine %>% 
+  mutate(country=fct_lump(country,4)) %>%
+  mutate(variety=fct_lump(variety,4)) %>% 
+  mutate(lprice=log(price)) %>%
+  select(lprice, points, country, variety) %>% 
+  drop_na(.)
+
+wino <- dummy_cols(wino, remove_selected_columns = T) %>% 
+  select(-country_Other, -variety_Other) %>% 
+  rename_all(funs(tolower(.))) %>% 
+  rename_all(funs(str_replace_all(., "-", "_"))) %>% 
+  rename_all(funs(str_replace_all(., " ", "_")))
+
+head(wino) %>% 
+  select(1:7)
+```
+
+## Basic Model
+
+```{r}
+wine_index <- createDataPartition(wino$lprice, p = 0.8, list = FALSE)
+wino_tr <- wino[ wine_index, ]
+wino_te <- wino[-wine_index, ]
+
+m2 <- train(lprice ~ .,
+                data = wino_tr, 
+                method = "lm",
+                trControl = control)
+```
+
+## Results (train)
+
+```{r}
+m2
+```
+
+## Results (test)
+
+```{r}
+wine_pred <- predict(m2, wino_te)
+postResample(pred=wine_pred, obs = wino_te$lprice)
+```
+
+## Variable Importance (depends on model used)
+
+```{r message=F}
+# estimate variable importance
+importance <- varImp(m2, scale=TRUE)
+# plot importance
+plot(importance)
+```
+
+
+## Variable Importance (linear regression)
+
+- Each coefficient in a linear model has a standard error, which is a measure of how certain we are about that coefficient based on the data.
+- For the t-statistic, we are asking how confident we are that the coefficient is different from 0: divide the coefficient by the standard error.
+- If the standard error is "small" relative to the coefficient, then we have a "big" t-statistic, hence high feature importance.
+
+
+## Recursive feature elimination
+
+![](images/RFE.png)
+
+## Using recursive feature elimination in caret
+
+```{r eval=FALSE}
+
+
+x <- select(wino_tr,-lprice)
+y <- wino_tr$lprice
+
+control <- rfeControl(functions=rfFuncs, method="cv", number=2)
+# run the RFE algorithm
+results <- rfe(x, y, sizes=c(1:3), rfeControl=control)
+# summarize the results
+print(results)
+# list the chosen features
+predictors(results)
+# plot the results
+plot(results, type=c("g", "o"))
+
+```
+
+
+## Feature selection in practice
+
+1. Raw data ---feature engineering--->
+2. Lots and lots of features! ---feature selection--->
+3. Shortlist of features (based on metric) ---expert input--->
+4. Shortlist of features II ---DS judgement--->
+5. Finalist models ---stakeholders--->
+6. Production model
+
+
+# Vocabulary
+
+## Key Terms
+
+- Feature Engineering
+- Categorical Feature
+- Continuous Feature
+- Dummy
+- Interaction
+- Caret
+- Model
+- Resampling
+- Training Data vs. Test Data
+- Variable Importance
+
+
+
+# Linear Regressions again
+
+
+## 5 Assumptions of Linear Regression
+
+- Linear regressions have a well-developed statistical theory.
+
+- This brings perks like confidence intervals on predictions.
+
+- It also has "costs" in that assumptions need to be satisfied.
+
+## 5 Assumptions of Linear Regression
+
+1. Linearity - the dependent variable is a linear combination of the features. 
+
+- This is less of big deal than it might seem! If y is actually quadratic in x, then y is linear in x^2! That's feature engineering.
+
+
+## 5 Assumptions of Linear Regression
+
+2. Constant variance / homoscedasticity - the variance of the errors do not depend on the values of the features. 
+
+- It's important (for linear regressions) that you don't make bigger prediction errors for some values of x than for others.
+
+
+## 5 Assumptions of Linear Regression
+
+3. Normality - the errors should be independent and normally distributed.
+
+- If you imagine a scatter plot of target variable value and residual (model error), it should look like white noise.
+
+
+## 5 Assumptions of Linear Regression
+
+4. Lack of perfect multicollinearity - none of your predictors should be a perfect linear combination of the others.
+
+- This can happen if you over-engineer features but in my experience this is less of a concern. You'll see an error that your coefficient matrix is singular or something.
+
+
+## 5 Assumptions of Linear Regression
+
+5. Exogeneity - model errors should be independent of the values of the features.
+
+- In particular, errors should have mean zero. It's always good to look at a histogram of your residuals (see also normality).
+
+## 5 Assumptions of Linear Regression: testing
+
+- First and foremost people look at a statistical test to determine whether the errors are normally distributed, like Shapiro-Wilk (also, plot them).
+
+![](images/residuals.png)
+
+## 5 Assumptions of Linear Regression: testing
+
+- Second I would always look at fitted value vs. residual to check homoscedasticity.
+
+![](images/heterosceda.png)
+
+![](images/homosceda.png)
+
+
+- For more, see for example https://people.duke.edu/~rnau/testing.htm

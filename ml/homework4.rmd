@@ -1,0 +1,201 @@
+---
+title: "Homework 4"
+author: ""
+date: "02/1/2023"
+output: 
+  html_document:
+    df_print: kable
+    fig_width: 11
+    fig_height: 8
+---
+
+**Directions:**
+
+Please turn in **both** a knitted HTML file *and* your Rmd file on WISE.
+
+Good luck!
+
+# 1. Setup (1pt)
+
+Change the author of this RMD file to be yourself and modify the below code so that you can successfully load the 'wine.rds' data file from your own computer.
+
+```{r setup, message=FALSE, warning=FALSE}
+knitr::opts_chunk$set(echo = TRUE, message = FALSE, warning = FALSE)
+knitr::opts_knit$set(root.dir = "/Users/charleshanks/Desktop/MSDS/SPRING_23/ML")
+library(tidyverse)
+library(caret)
+library(naivebayes)
+wine = read_rds("pinot.rds")
+```
+
+# 2. Conditional Probability (3pts)
+
+Calculate $P(Burgundy | Fruit)$
+
+...i.e. the probability that a Pinot comes from Burgundy given it has the word 'fruit' in the description.
+
+```{r}
+#Given that it has the word fruit in the description, what is probability that e
+
+
+wine = wine %>% mutate(fruit = as.integer(str_detect(description, "[Ff]ruit")))
+
+num_fruit = sum(wine$fruit)
+#4824 wines have fruit in description
+total_wine = nrow(wine)
+#8380
+fruit_prob = num_fruit/total_wine
+#.5756
+#probability that wine is burgundy
+burg_prob = wine %>% filter(province == "Burgundy") %>% count()/total_wine
+#.142
+
+burg_province = wine %>% filter(province == "Burgundy") %>% mutate(fruit = as.integer(str_detect(description,"[Ff]ruit")))
+burg_wines_with_fruit = sum(burg_province$fruit)
+#1193 burgundy pinots in ds 
+#1054 burgundy wines contain word fruit in description. 
+#so P(Fruit | Burgundy) = 
+1054/1193
+
+prob_burg_given_fruit = (.883*.142)/.576
+
+
+```
+
+$$ P({\rm Thing 1}~|~{\rm Thing 2}) = \frac{P({\rm Thing 2}~|~ \rm{Thing 1})P(\rm{Thing 1})}{P({\rm Thing 2})} $$
+(P(Burgundy | Fruit) = P(Fruit | Burgundy)*P(Burgundy))/P(Thing2)
+
+P(fruit | Burgundy) = .883
+P(Burgundy) = .142
+P(Fruit) = .576
+
+.883*,142
+
+The probability that a Pinot comes from Burgundy given that it has the word "fruit" in the description is .218. 
+
+
+
+
+# 3. Naive Bayes Algorithm (4pts)
+
+1. Train a naive bayes algorithm to classify a wine's province,
+2. using 80% of your data,
+3. three features engineered from the description
+4. and 5-fold cross validation.
+5. Report Kappa after using your model to predict provinces in the holdout (test) sample.
+
+```{r}
+
+ds_nb = wine %>% mutate(acidity = as.integer(str_detect(description, "[Aa]cidity")),
+                       nose = as.integer(str_detect(description, "[Nn]ose")),
+                       palate = as.integer(str_detect(description, "[Pp]alate"))) %>% 
+                select(province, acidity,nose, palate )
+
+
+wine_index <- createDataPartition(ds_nb$province, p = 0.8, list = FALSE)
+train <- ds_nb[ wine_index, ]
+test <- ds_nb[-wine_index, ]
+
+control <- trainControl(method = "cv", number = 5)
+
+nbm <- train(province ~ .,
+             data = train, 
+             method = "naive_bayes",
+             tuneGrid = expand.grid(usekernel = c(T,F), laplace = T, adjust = T),
+             metric = "Kappa",
+             trControl = control)
+
+nbm
+
+confusionMatrix(predict(nbm,test), factor(test$province))
+
+```
+
+
+```
+
+# 4. Frequency differences (2pts)
+
+List the three words that most distinguish New York Pinots from all other Pinots.
+
+```{r}
+
+#FEATURE ENGINEERING 
+df %>% filter(starts_with("herb") )
+
+provinces = c("Burgundy", "California", "Casablanca_Valley","Marlborough", 
+                 "New_York", "Oregon")
+
+oregon = wine %>% filter(province == "Oregon")
+  
+oregon_df = oregon %>%
+  unnest_tokens(word, description) %>%
+  anti_join(stop_words) %>% # get rid of stop words
+  filter(word != "wine") %>%
+  filter(word != "pinot") %>%
+  count(ID, word) %>% 
+  group_by(ID) %>% 
+  mutate(freq = n/sum(n)) %>% 
+  mutate(exists = (n>0)) %>% 
+  ungroup %>% 
+  group_by(word) %>% 
+  mutate(total = sum(n))
+
+Marlborough_top25words = wine %>% filter(province == "Marlborough") %>%
+  unnest_tokens(word, description) %>%
+  anti_join(stop_words) %>% # get rid of stop words
+  filter(word != "wine") %>%
+  filter(word != "pinot") %>%
+  count(ID, word) %>% 
+  group_by(ID) %>% 
+  mutate(freq = n/sum(n)) %>% 
+  mutate(exists = (n>0)) %>% 
+  ungroup %>% 
+  group_by(word) %>% 
+  mutate(total = sum(n)) %>% 
+  count(word) %>% 
+  arrange(desc(n)) %>% 
+  head(25)
+  
+ = oregon_df %>% 
+  count(word) %>%
+  arrange(desc(n)) %>% 
+  head(25) %>% select(word)
+
+
+colnames(california_top25words) = c("ca_words")
+colnames(burgundy_top25words) =   c("burg_words")
+colnames(Marlborough_top25words) = c("marl_words")
+colnames(casablanca_top25words) = c("casa_words")
+colnames(new_york_top25words) = c("ny_words")
+colnames(oregon_top25words) = c("or_words")
+
+california_top25words$index = 1:nrow(california_top25words)
+
+l1 = list(burgundy_top25words, Marlborough_top25words,casablanca_top25words,new_york_top25words,oregon_top25words)
+
+
+
+
+top_25_by_province = cbind(california_top25words,burgundy_top25words,Marlborough_top25words,casablanca_top25words,new_york_top25words,oregon_top25words)
+
+view(top_25_by_province)
+
+unique_words1 = unique(unlist(top_25_by_province[,1]))
+unique_words2 = unique(unlist(top_25_by_province[,2]))
+unique_words3 = unique(unlist(top_25_by_province[,3]))
+only_in_col1 = setdiff(unique_words1,unique_words2)
+only_in_col2 = setdiff(unique_words2,unique_words1)
+
+list(only_in_col1 = only_in_col1, only_in_col2 = only_in_col2)
+?setdiff()
+
+wine %>% filter(str_detect(description, "crisp")) %>% group_by(province) %>% count()
+
+wine %>% group_by(province) %>% count()
+
+burgundy_top25words
+brisk, bramble
+
+```
+

@@ -1,0 +1,220 @@
+---
+title: "ML_class1"
+output: pdf_document
+date: "2023-01-11"
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+NEW THINGS 
+-caret package 
+dropna() 
+
+Objective: revew the code and concepts from the first class of Orem's ML course. 
+
+Review of Regression: 
+
+I. Single variable
+
+Creating the basic model: 
+```{r}
+library(moderndive)
+library(tidyverse)
+
+#first new idea: creating a new column consisting of boolean if the province of the wine is from Bordeaux.
+wine = wine %>% 
+  mutate(bordeaux = (province == "Bordeaux"))
+
+#Making my own example of this with a simple data frame. 
+col1 = c('a','b','c','d')
+col2 = c('pig', 'cow', 'pig', 'pig')
+t = data.frame("letters" = col1,"farm" = col2)
+t = t %>% 
+  mutate(is_pig = (farm == 'pig'))
+
+#linear model: is price determined by points (of review)
+m1 = lm(price ~ points, data = wine)
+
+#new function: get_regression_table(m1)
+get_regression_table(m1)
+
+#from this table we have the linear line: 
+# price = -489.251 + 5.920 * points
+# this means that for every additional point we expect an increase of almost $6 in the price of the wine. 
+```
+
+Multiple Regression 
+
+```{r}
+m2 = lm(price ~ points + bordeaux, data = wine)
+get_regression_table(m2)
+
+#now the formula becomes: 
+# price = -491.883 + 5.946*points + 8.703*bordeaux 
+#This means that if it is bordeaux, we add $8.70 to price of bottle. 
+
+```
+
+#Interaction term: points + bordeaux
+
+An interaction effect is represented as the product of two or more independent variables:
+
+y_hat = b0 + b1X1 + b2X2 + b3X1X2 
+
+```{r}
+m3 = lm(price ~ points*bordeaux, data = wine)
+get_regression_table(m3)
+```
+
+Model diagnostics: 
+
+```{r}
+get_regression_summaries(m1)
+#this function gives us the metric of how good our model is doing at capturing the relation of the expl. and resp. variables: 
+```
+```{r}
+get_regression_summaries(m2)
+```
+```{r}
+get_regression_summaries(m3)
+```
+Moving to an ML framework 
+
+These lines of code set up the training / testing split for my model. 
+```{r}
+library(caret)
+set.seed(504)
+train_index = createDataPartition(wine$price, times = 1, p = 0.8, list = FALSE)
+train = wine[train_index, ]
+test = wine[-train_index, ]
+```
+
+Running our 3 models on training data 
+the same linear regression, but now our data is the training subset
+```{r}
+m1 = lm(price~points, data = train) 
+m2 = lm(price~points + bordeaux, data = train)
+m3 = lm(price~points*bordeaux, data = train)
+```
+
+```{r}
+library(broom)
+coefficients(m3)
+```
+
+Compare RMSE across models
+```{r}
+r1 = get_regression_points(m1, newdata = test) %>% 
+  drop_na(residual) %>% 
+    mutate(sq_residuals = residual^2) %>% 
+      summarize(rmse = sqrt(mean(sq_residuals)))
+
+r2 = get_regression_points(m2, newdata = test) %>% 
+  drop_na(residual) %>% 
+    mutate(sq_residuals = residual^2) %>% 
+      summarize(rmse = sqrt(mean(sq_residuals)))
+
+r3 = get_regression_points(m3, newdata = test) %>% 
+  drop_na(residual) %>% 
+    mutate(sq_residuals = residual^2) %>% 
+      summarize(rmse = sqrt(mean(sq_residuals)))
+
+r3
+
+```
+
+```{r}
+?get_regression_points
+?get_regression_table()
+```
+
+
+Classification & Ethics example: 
+
+Suppose we are trying to predict gender based on height. We start be defining the outcome and predictors and creating training and test data. 
+```{r}
+
+library(dslabs)
+data(heights)
+head(heights)
+
+#our response variable: 
+y = heights$sex
+#our explanatory variable: 
+x = heights$height
+
+set.seed(504)
+test_index = createDataPartition(y, times = 1, p = .5, list = FALSE)
+test_set = heights[test_index, ] #indexing the all the colums but only the rows in the test_index
+train_set = heights[-test_index, ]
+
+```
+
+Starting by developing the simplest possible machine algorithm: guessing the outcome: 
+```{r}
+y_hat = sample(c("Male", "Female"), length(test_index), replace = TRUE) %>%
+  factor(levels = levels(test_set$sex))
+
+y_hat
+test_set
+
+#the overall accuracy is define as the overall population that is predicted correctly: 
+mean(y_hat == test_set$sex)
+```
+
+
+```{r}
+heights %>% filter(sex == "Female") %>% summarize(female_avg = mean(height))
+#avg height of females in dataset: 64.93942 inches
+heights %>% filter(sex == "Male") %>% summarize(male_avg = mean(height), stdev = sd(height))
+#avg height of males in dataset: 69.31475 
+
+#Dr. Orem's code, using group_by
+heights %>% group_by(sex) %>% summarize(mean(height), sd(height), mean(height)-(sd(height)*2))
+```
+
+A simple predictive model: predict male if observation is within 2 standard deviations: 69.314 - 2*3.6 ~= 62
+```{r}
+#x is definited earlier as the height column of dataset
+y_hat = ifelse(x>62, "Male", "Female") %>%
+  factor(levels(test_set$sex))
+
+#getting of proportion of guesses we get right based on our prediction model
+mean(y ==y_hat)
+```
+
+Optimizing 
+```{r}
+cutoff = seq(61,70)
+
+accuracy = map_dbl(cutoff, function(x){
+  y_hat = ifelse(train_set$height > x, "Male", "Female") %>% 
+    factor(levels = levels(test_set$sex))
+  mean(y_hat == train_set$sex)
+})
+
+max(accuracy)
+
+#the cutoff resulting this accuracy is: 
+best_cutoff = cutoff[which.max(accuracy)]
+best_cutoff
+```
+
+How this prediction model does on the test data 
+```{r}
+y_hat = ifelse(test_set$height > best_cutoff, "Male", "Female") %>% 
+    factor(levels = levels(test_set$sex))
+str(y_hat)
+
+mean(y_hat == test_set$sex)
+
+```
+
+Making a confusion matrix 
+
+```{r}
+table(predicted = y_hat, actual = test_set$sex)
+```
+

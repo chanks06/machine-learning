@@ -1,0 +1,605 @@
+---
+title: "Naive Bayes"
+author: 'Hendrik Orem, Ph.D., with thanks to Jameson Watts '
+date: "01/31/2023"
+output:
+  html_document:
+    df_print: paged
+  pdf_document:
+    df_print: kable
+    fig_width: 11
+    fig_height: 8
+---
+
+## Agenda
+
+1. Review of Homework 3
+2. The Naive Bayes algorithm
+3. Dinner break
+4. Tidy text and bag of words
+5. Group work
+6. Vocabulary
+
+# The Naive Bayes Algorithm
+
+
+## Bayes' Theorem
+
+$$ P(L~|~{\rm features}) = \frac{P({\rm features}~|~L)P(L)}{P({\rm features})} $$
+More generally...
+
+
+$$ P({\rm Thing 1}~|~{\rm Thing 2}) = \frac{P({\rm Thing 2}~|~ \rm{Thing 1})P(\rm{Thing 1})}{P({\rm Thing 2})} $$
+
+## Bayes' Theorem Example
+
+Suppose half of all emails are spam, and you've just purchased some software (hurray) that filters spam emails, claiming to detect 99% of spam and that the probability of a false positive (marking non-spam as spam) is 5%.
+
+Now suppose an incoming email is marked as spam. What is the probability that it's a non-spam email?
+
+Thing 1 = email is non-spam email
+
+Thing 2 = emaill is marked as spam
+
+P(thing2 | thing1) =
+
+P(thing 1) =
+
+P(thing 2) =
+
+
+## Bayes' Theorem Example Solution
+
+
+Solution:
+
+
+P(thing2 | thing1) = 5%
+
+P(thing1) = 50%
+
+P(thing 2) = 99% * 50% + 5% * 50%
+
+$$0.05*0.5 / (0.99*0.5 + 0.05*0.5) = 4.81\%$$
+
+## Bayes' Theorem Exercises!
+
+1. You have three cards: one is red on both sides, one is black on both sides, and one has one red side and one black side. You pick a card at random, and put it on the table on a random side, and the color showing is red. What is the probability that the other side is black?
+
+2. Let's imagine half of all rainy days start off cloudy in the morning. However, we live in a cloudy place, and about 40% of days start off cloudy, and you know that 90% of days this time of year do not have rain. What are the odds it will rain today?
+
+
+## Solutions
+
+1. Solution:
+
+
+
+2. Solution:
+
+
+
+## Algorithm
+
+$$ P(L~|~{\rm features}) = \frac{P({\rm features}~|~L)P(L)}{P({\rm features})} $$
+
+If we only care about choosing between two labels L1 and L2, then we only need the ratio:
+
+$$ \frac{P(L_1~|~{\rm features})}{P(L_2~|~{\rm features})} = \frac{P({\rm features}~|~L_1)}{P({\rm features}~|~L_2)}\frac{P(L_1)}{P(L_2)} $$
+
+But how on earth can we get P(features | L)? Well, we have to make an assumption. "Naive" in Naive Bayes means we keep it simple.
+
+Really we would need P(Cherry, Fruit, Bordeaux | Chardonnay), "Naive" assumption is independence so the algorithm calculates P(Cherry | Chardonnay) * P(Fruit | Chardonnay) * P(Bordeaux | Chardonnay).
+
+
+## Setup
+
+```{r setup, message=FALSE, warning=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+knitr::opts_knit$set(root.dir = "/Users/charleshanks/Desktop/MSDS/SPRING_23/ML")
+library(tidyverse)
+library(caret)
+library(naivebayes)
+library(fastDummies)
+
+wine = read_rds("pinot.rds")
+names(wine)[names(wine) == 'id'] = 'ID'
+
+wine
+```
+
+## Some basic features
+
+```{r}
+wino <- wine %>% 
+  mutate(year_f = as.factor(year)) %>% 
+  mutate(cherry = str_detect(description,"cherry")) %>% 
+  mutate(chocolate = str_detect(description,"chocolate")) %>%
+  mutate(earth = str_detect(description,"earth")) %>%
+  select(-description, year)
+
+glimpse(wino)
+```
+
+
+
+## A basic model
+
+```{r}
+set.seed(504)
+wine_index <- createDataPartition(wino$province, p = 0.80, list = FALSE)
+train <- wino[ wine_index, ]
+test <- wino[-wine_index, ]
+
+control <- trainControl(method = "cv")
+
+fit <- train(province ~ .,
+             data = train, 
+             method = "naive_bayes",
+             metric = "Kappa",
+             trControl = control)
+fit
+```
+
+What's going on here?
+
+## Maybe bin the data?
+
+```{r}
+wino <- wino %>%
+  select(-starts_with("year_")) %>% 
+  mutate(points_f = case_when(
+    points < 90 ~ "low",
+    points >= 90 & points < 96 ~ "med",
+    points >= 96 ~ "high"
+  )
+           )  %>% 
+  mutate(price_f = case_when(
+    price < 16 ~ "low",
+    price >= 16 & price < 41 ~ "med",
+    price >= 41 ~ "high"
+  )
+           )  %>% 
+  mutate(year_f = case_when(
+    year < 2005 ~ "old",
+    year >= 2005 & year < 2011 ~ "recent",
+    year >= 2011 ~ "current"
+  )
+           ) %>% 
+  select(-price,-points,-year)
+
+  head(wino)
+```
+
+## Binned model
+
+```{r}
+set.seed(504)
+train <- wino[ wine_index, ]
+test <- wino[-wine_index, ]
+
+fit <- train(province ~ .,
+             data = train, 
+             method = "naive_bayes",
+             metric = "Kappa",
+             trControl = control)
+fit
+```
+
+Little better, but let's look at the confusion matrix to see what might be going on.
+
+## Confusion Matrix
+```{r}
+confusionMatrix(predict(fit, test),factor(test$province))
+```
+
+##### Naive bayes is best when you want to consider a bunch of predictors simultaneously to get a 'holistic' view.
+
+# Dinner 
+
+# Tidytext and frequency distributions
+
+## Tidytext
+
+```{r}
+library(tidytext)
+data(stop_words)
+head(stop_words, 25)$word
+```
+
+## Create document term matrix
+
+```{r}
+df <- wine %>%
+  unnest_tokens(word, description) %>%
+  anti_join(stop_words) %>% # get rid of stop words
+  filter(word != "wine") %>%
+  filter(word != "pinot") %>%
+  count(ID, word) %>% 
+  group_by(ID) %>% 
+  mutate(freq = n/sum(n)) %>% 
+  mutate(exists = (n>0)) %>% 
+  ungroup %>% 
+  group_by(word) %>% 
+  mutate(total = sum(n))
+
+head(df, 10)
+
+df %>% filter(word == "fruit")
+```
+
+## Top words in database
+
+```{r}
+df %>% 
+  count(word) %>%
+  arrange(desc(n)) %>% 
+  head(25)
+
+df %>% filter(word == "fruit" | word == "Fruit") %>% summarize(sum = sum(n))
+```
+
+## Pivot wide and rejoin with wine
+
+```{r}
+wino <- df %>% 
+  filter(total > 1000) %>% 
+  pivot_wider(id_cols = ID, names_from = word, values_from = exists, values_fill = list(exists=0)) %>% 
+  merge(select(wine,ID, province), all.y=TRUE) #%>% 
+  #drop_na()
+
+#wino <- merge(select(wine,ID, province), wino, by="ID", all.x=TRUE) %>%
+#  arrange(ID)
+#View(wino)
+wino <- replace(wino, is.na(wino), FALSE)
+
+head(wino, 10) %>% 
+  select(1:5,province)
+```
+
+## A new model
+
+```{r}
+set.seed(504)
+wine_index <- createDataPartition(wino$province, p = 0.80, list = FALSE)
+train <- wino[ wine_index, ]
+test <- wino[-wine_index, ]
+
+fit <- train(province ~ .,
+             data = train, 
+             method = "naive_bayes",
+             tuneGrid = expand.grid(usekernel = c(T,F), laplace = T, adjust = T),
+             metric = "Kappa",
+             trControl = trainControl(method = "cv"))
+fit
+```
+
+...now things are getting better.
+
+## Confusion Matrix
+```{r}
+confusionMatrix(predict(fit, test),factor(test$province))
+```
+
+## Maybe we can find words associated with our sparse provinces?
+
+```{r}
+df %>% 
+  left_join(select(wine, ID, province), by = "ID") %>% 
+  count(province, word) %>%
+  group_by(province) %>% 
+  top_n(10,n) %>% 
+  arrange(province, desc(n)) %>% 
+  ggplot(aes(x = word, y = n, fill = province)) + geom_col() + coord_flip()
+```
+
+## Group exercise
+
+Use the top words by province to...
+
+1. Engineer more features that capture the essence of Casablanca, Marlborough and New York
+2. Look for difference between California and Oregon
+3. Use what you find to run naive Bayes models that achieve a Kappa that approaches 0.5
+
+Feature Engineering:
+```{r}
+#cherry tannins and drink cherry
+wino = wino %>% mutate(cherry_tannins = cherry*tannins)
+wino = wino %>% mutate(drink_cherry = drink*cherry)
+wino$tannins
+#adding aging for oregon 
+aging = wine %>% mutate(aging = str_detect(description, "aging")) %>% select(ID,aging)
+wino = wino %>%
+  left_join(aging, by = "ID")
+
+#addiing chocolate 
+chocolate = wine %>% mutate(chocolate = str_detect(description, "chocolate")) %>% select(ID,chocolate)
+wino = wino %>%
+  left_join(chocolate, by = "ID")
+
+#adding savory
+savory = wine %>% mutate(savory = str_detect(description, "[Ss]avory")) %>% select(ID,savory)
+wino = wino %>%
+  left_join(savory, by = "ID")
+
+wino %>% filter(savory == TRUE)
+
+#cherry*finish
+wino = wino %>% mutate(cherry_finish = cherry*finish)
+
+####################
+new_wine = wine %>% select(ID,province)
+
+oregon_features = wine %>% 
+  mutate(
+    aging = str_detect(description, "aging"),
+    tart = str_detect(description, "tart"), 
+    chocolate = str_detect(description, "chocolate"),
+    vineyard = str_detect(description,"vineyard")) %>% 
+  select(ID,aging,tart,chocolate,vineyard)
+
+new_wine = new_wine %>%
+  left_join(oregon_features, by = "ID")
+
+casablanca_features = wine %>% 
+  mutate(
+    plum = str_detect(description, "plum"),
+    oak = str_detect(description, "oak"), 
+    berry = str_detect(description, "berry")) %>% 
+  select(ID,plum,oak,berry)
+
+new_wine = new_wine %>%
+  left_join(casablanca_features, by = "ID")
+
+marlborough_features = wine %>% 
+  mutate(
+    medium = str_detect(description, "medium"),
+    bodied = str_detect(description, "bodied"), 
+    hints = str_detect(description, "hints")) %>% 
+  select(ID,medium,bodied,hints)
+
+new_wine = new_wine %>%
+  left_join(marlborough_features, by = "ID")
+
+ny_features = wine %>% 
+  mutate(
+    noir = str_detect(description, "[Nn]oir")) %>% 
+  select(ID,noir)
+
+new_wine = new_wine %>%
+  left_join(ny_features, by = "ID")
+
+ca_features = wine %>% 
+  mutate(
+    black = str_detect(description, "black"),
+    nose = str_detect(description, "nose"), 
+    palate = str_detect(description, "palate")) %>% 
+  select(ID,black,nose,palate)
+
+new_wine = new_wine %>%
+  left_join(ca_features, by = "ID")
+
+burg_features = wine %>% 
+  mutate(
+    structure = str_detect(description, "structure"),
+    ripe = str_detect(description, "ripe"), 
+    rich = str_detect(description, "rich")) %>% 
+  select(ID,structure,ripe,rich)
+
+new_wine = new_wine %>%
+  left_join(burg_features, by = "ID")
+
+#test1
+
+new_wine_index = createDataPartition(new_wine$province, p = 0.80, list = FALSE)
+train <- new_wine[ new_wine_index, ]
+test <- new_wine[-new_wine_index, ]
+
+fit <- train(province ~ .,
+             data = train, 
+             method = "naive_bayes",
+             tuneGrid = expand.grid(usekernel = c(T,F), laplace = T, adjust = T),
+             metric = "Kappa",
+             trControl = trainControl(method = "cv"))
+
+confusionMatrix(predict(fit, test),factor(test$province))
+
+#adding cherry and cherry interaction: 
+cherry = wine %>% mutate(cherry = str_detect(description, "cherry"),
+                         tannin = str_detect(description, "tannin"),
+                         drink = str_detect(description, "drink")) %>% select(ID,cherry,tannin,drink)
+new_wine = new_wine %>%
+  left_join(cherry, by = "ID")
+
+new_wine = new_wine %>% mutate(drink_cherry = drink*cherry)
+
+new_wine = new_wine %>% mutate(noir_notes = noir*notes)
+colnames(new_wine)
+#####
+
+wine_index <- createDataPartition(wino$province, p = 0.80, list = FALSE)
+train <- wino[ wine_index, ]
+test <- wino[-wine_index, ]
+
+fit <- train(province ~ .,
+             data = train, 
+             method = "naive_bayes",
+             tuneGrid = expand.grid(usekernel = c(T,F), laplace = T, adjust = T),
+             metric = "Kappa",
+             trControl = trainControl(method = "cv"))
+
+
+confusionMatrix(predict(fit, test),factor(test$province))
+```
+
+
+improving marlborough
+
+```{r}
+wino = wino %>% mutate(drink_cherry = drink*cherry)
+wino
+
+#testing...
+wine_index <- createDataPartition(wino$province, p = 0.80, list = FALSE)
+train <- wino[ wine_index, ]
+test <- wino[-wine_index, ]
+
+fit <- train(province ~ .,
+             data = train, 
+             method = "naive_bayes",
+             tuneGrid = expand.grid(usekernel = c(T,F), laplace = T, adjust = T),
+             metric = "Kappa",
+             trControl = trainControl(method = "cv"))
+fit
+
+confusionMatrix(predict(fit, test),factor(test$province))
+
+```
+
+
+```{r}
+wine %>% filter(province == "New_York") %>% select(description) %>% view()
+
+
+
+```
+
+
+
+
+
+
+# Vocabulary
+
+- Naive Bayes
+- Correlation
+- Residual
+- Kappa
+- Parameter Tuning
+- Conditional Probability
+
+
+# Bonus Code
+
+```{r}
+library(scales)
+wtxt <- wine %>% 
+  unnest_tokens(word, description) %>% 
+  anti_join(stop_words) %>% 
+  filter(str_detect(string = word, pattern = "[a-z+]")) %>%  # get rid weird non alphas
+  filter(str_length(word)>3) %>%  # get rid of strings shorter than 3 characters
+  group_by(word) %>% 
+  mutate(total=n()) %>% 
+  ungroup()
+
+wtxt %>% filter(word == "palate") %>% group_by(province) %>% count()
+
+wtxt %>% 
+    filter(province=="Oregon" | province=="Marlborough") %>% 
+    filter(!(word %in% c("wine","pinot","drink","noir","vineyard","palate","notes","flavors","bottling"))) %>% 
+    filter(total > 400) %>% 
+    group_by(province, word) %>%
+    count() %>% 
+    group_by(province) %>% 
+    mutate(proportion = n / sum(n)) %>% 
+    pivot_wider(id_cols = word, names_from = province, values_from = proportion) %>% 
+    ggplot(aes(x = Oregon, y = Marlborough, color = abs(Oregon - Marlborough))) +
+    geom_abline(color = "gray40", lty = 2) +
+    geom_jitter(alpha = 0.1, size = 2.5, width = 0.3, height = 0.3) +
+    geom_text(aes(label = word), check_overlap = TRUE, vjust = 1.5) +
+    scale_x_log10(labels = percent_format()) +
+    scale_y_log10(labels = percent_format()) +
+    scale_color_gradient(limits = c(0, 0.001), low = "darkslategray4", high = "gray75") +
+    theme(legend.position="none") +
+    labs(x = "Oregon", y = "Marlborough", title = "Words describing Pinot Noir from Marlborough and Oregon")
+```
+
+
+```{r}
+dtxt <- wtxt %>% 
+  filter(province=="Oregon" | province=="California") %>% 
+  filter(!(word %in% c("wine","pinot","drink","noir","vineyard","palate","notes","flavors","bottling","bottle","finish"))) %>% 
+  filter(total > 400) %>% 
+  group_by(province, word) %>%
+  count() %>% 
+  group_by(province) %>% 
+  mutate(proportion = n / sum(n)) %>% 
+  pivot_wider(id_cols = word, names_from = province, values_from = proportion) %>% 
+  mutate(diff=Oregon-California) 
+
+dtxt %>%
+  top_n(25, diff) %>%
+  mutate(word = reorder(word, diff)) %>%
+  ggplot(aes(word, diff)) +
+  geom_col() +
+  xlab(NULL) +
+  coord_flip()
+```
+
+
+
+```{r}
+wtxt %>% 
+    filter(province =="Casablanca_Valley" | province=="Marlborough" | province == "New_York") %>% 
+    filter(!(word %in% c("wine","pinot","drink","noir","vineyard","palate","notes","flavors","bottling"))) %>% 
+    filter(total > 400) %>% 
+    group_by(word, province) %>%
+    count() 
+```
+
+
+
+```{r}
+wine %>% filter(province %in% c("Casablanca_Valley","New_York", "Marlborough")) %>% 
+  unnest_tokens(word, description) %>% 
+  anti_join(stop_words) %>% 
+  filter(str_detect(string = word, pattern = "[a-z+]")) %>%
+  filter(!(word %in% c("wine","cherry","pinot","drink","noir","vineyard","palate","notes","flavors","bottling"))) %>%
+  filter(str_length(word)>3) %>%  # get rid of strings shorter than 3 characters
+  group_by(word) %>% 
+  mutate(total=n()) %>% 
+  ungroup() %>% 
+  group_by(province, word) 
+
+
+```
+```{r}
+wino
+m2 = wino %>% select(aromas, vineyard, finish, fruit,flavors,black, cherry,tannins, nose,cherry_tannins,drink_cherry,aging,chocolate, province)
+
+m2_index <- createDataPartition(m2$province, p = 0.80, list = FALSE)
+train <- m2[ m2_index, ]
+test <- m2[-m2_index, ]
+
+fit <- train(province ~ .,
+             data = train, 
+             method = "naive_bayes",
+             tuneGrid = expand.grid(usekernel = c(T,F), laplace = T, adjust = T),
+             metric = "Kappa",
+             trControl = trainControl(method = "cv"))
+fit
+
+confusionMatrix(predict(fit, test),factor(test$province))
+
+```
+
+```{r}
+
+has_erry = grepl("erry",wine$description)
+
+wino = wino %>% mutate(has_erry = grepl("erry",wine$description))
+
+wino
+
+```
+
+```{r}
+or_features = wine %>% 
+  mutate(
+    aging =  str_detect(description, "aging"),
+    vineyard = str_detect(description, "vineyard"),
+    chocolate =  str_detect(description, "chocolate"))%>% 
+  select(ID,aging,vineyard,chocolate) 
+```
+
+

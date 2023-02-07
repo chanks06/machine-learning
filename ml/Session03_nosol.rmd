@@ -1,0 +1,524 @@
+---
+title: "K Nearest Neighbors"
+author: "Hendrik Orem, Ph.D., with thanks to Jameson Watts"
+date: "01/24/2023"
+output: 
+  pdf_document:
+    df_print: kable
+    fig_width: 11
+    fig_height: 8
+---
+
+## Agenda
+
+1. Review of Homework 2
+2. A human understanding of regression
+3. Dinner break
+5. Preprocessing and BoxCox
+6. The KNN algorithm and the Confusion Matrix
+
+## Setup
+
+```{r setup, message=FALSE, warning=FALSE}
+knitr::opts_chunk$set(echo = TRUE, message = FALSE, warning = FALSE)
+knitr::opts_knit$set(root.dir = "/Users/charleshanks/Desktop/MSDS/SPRING_23/ML")
+setwd("/Users/charleshanks/Desktop/MSDS/SPRING_23/ML")
+library(tidyverse)
+library(formatR)
+library(moderndive)
+#source('theme.R')
+wine <- read_rds("wine.rds") %>% 
+  mutate(lprice = log(price))
+```
+
+
+# Reporting Impact from Regressions
+
+## Correlation
+
+[*Credit:* Modern Dive](https://moderndive.com/5-regression.html)
+
+[http://guessthecorrelation.com/](http://guessthecorrelation.com/) 
+
+Note: this is linear correlation, but there are other kinds!
+
+![](./images/correlation.png)
+
+## Calculating correlation
+
+$$  \rho_{X, Y} = \frac{\mathbb{E}[(X - \mu_X)(Y - \mu_Y)]}{\sigma_X\sigma_Y} = \frac{\text{cov}(X, Y)}{\sigma_X\sigma_Y} $$
+
+```{r}
+wine %>% 
+  summarise(cor_p=cor(price,points),cor_lp=cor(lprice,points))
+```
+
+## Kendall rank correlation
+
+We say $(x_1, y_1)$ and $(x_2, y_2)$ are concordant if $x_1 > x_2$ and $y_1 > y_2$ (or both $<$). Otherwise they are discordant.
+
+$$ \tau = \frac{(\text{number of concordant pairs})-\text{(number of discordant pairs)}}{{{n}\choose{2}}}$$
+
+## Exercise
+
+1. Calculate the correlation between log(price) and points 
+2. by variety
+3. for Oregon Chardonnay, Pinot Noir and Pinot Gris
+4. in the same tibble
+
+## Solution
+
+```{r}
+
+#1
+wine = wine %>% mutate(lprice = log(price))
+
+wine %>% summarize(cor_lp = cor(lprice,points))
+#.624
+
+#2
+wine %>% filter(variety %in% c("Chardonnay", "Pinot Noir", "Pinot Gris")) %>% 
+  filter(province == "Oregon") %>% 
+  group_by(variety) %>% summarize(cor_lp = cor(lprice, points))
+
+
+
+```
+
+
+
+## Graphing residuals (bad)
+
+```{r}
+model <- lm(price~points, filter(wine,province=="Oregon"))
+get_regression_points(model) %>% 
+  ggplot(aes(points, residual))+
+    geom_point()
+```
+
+## Graphing residuals (good)
+
+```{r}
+model <- lm(lprice~points, filter(wine,province=="Oregon"))
+get_regression_points(model) %>% 
+  ggplot(aes(points, residual))+
+    geom_point()
+```
+
+
+## Interpreting the coefficients
+
+```{r}
+model <- lm(lprice~points, filter(wine,province=="Oregon"))
+pct = (exp(coef(model)["points"]) - 1) * 100
+print(model)
+print(exp(0.094))
+```
+
+\begin{eqnarray*}
+y &=& \beta x \\
+ log(y_1) - log(y_2) &=& \beta (x_1 - x_2) \\
+log(y_1/y_2) &=& \beta (x_1 - x_2) \\
+y_1/y_2 &=& \exp(\beta(x_1 - x_2))
+\end{eqnarray*}
+
+
+Since we logged the DV, a 1 point ratings increase = ``r round(pct,2)``\% increase in price on average. 
+
+Note: $$ (e^x-1)*100 $$
+
+## Let's express that with code
+
+```{r}
+for(v in c("Chardonnay", "Pinot Gris","Pinot Noir")){
+  m <- lm(lprice~points, filter(wine,province=="Oregon", variety==v))
+  pct <- round((exp(coef(m)["points"]) - 1) * 100,2)
+  print(str_c("For ",v,", a 1 point ratings increase leads to a ",pct,"% increase in price."))
+}
+
+
+```
+
+## Logged feature
+
+```{r}
+model <- lm(price~lpoints, filter(wine,province=="Oregon") %>% mutate(lpoints=log(points)))
+model
+inc = coef(model)["lpoints"]/100
+```
+
+Here we look at a % increase in the feature. 
+
+Since we logged the IV (feature), a 1% ratings increase means $$ price_2 - price_1 = beta * \log(r_2 / r_1) = 324 * \log(1.01) = 3.22 $$
+
+## LogLog (also elasticity)
+
+```{r}
+model <- lm(lprice~lpoints, filter(wine,province=="Oregon") %>% mutate(lpoints=log(points)))
+model
+```
+
+\begin{eqnarray*}
+\log(y) &=& \beta \log(x) \\
+ log(y_1) - log(y_2) &=& \beta (\log(x_1) - \log(x_2)) \\
+log(y_1/y_2) &=& \beta \log(x_1/x_2) \\
+log(y_1/y_2) &=&  \log\left((x_1/x_2)^\beta\right) \\
+y_1/y_2 &=& (x_1/x_2)\beta
+\end{eqnarray*}
+
+However, we can simplify this: $$(1 + \gamma)^t \approx 1 + \gamma t$$, so a 1\% increase in the feature is approximately a $\beta$\% increase in the output. 
+
+...a 1\% increase in ratings equals a ``r round(coef(model)["lpoints"],2)``\% increase in price on average
+
+
+For more: 
+
+https://stats.oarc.ucla.edu/other/mult-pkg/faq/general/faqhow-do-i-interpret-a-regression-model-when-some-variables-are-log-transformed/
+
+
+## Summary
+
+- Only the dependent/response variable is log-transformed. Exponentiate the coefficient, subtract one from this number, and multiply by 100. This gives the percent increase (or decrease) in the response for every one-unit increase in the independent variable. Example: the coefficient is 0.198. (exp(0.198) – 1) * 100 = 21.9. For every one-unit increase in the independent variable, our dependent variable increases by about 22%.
+- Only independent/predictor variable(s) is log-transformed. Divide the coefficient by 100. This tells us that a 1% increase in the independent variable increases (or decreases) the dependent variable by (coefficient/100) units. Example: the coefficient is 0.198. 0.198/100 = 0.00198. For every 1% increase in the independent variable, our dependent variable increases by about 0.002. 
+- Both dependent/response variable and independent/predictor variable(s) are log-transformed. Interpret the coefficient as the percent increase in the dependent variable for every 1% increase in the independent variable. Example: the coefficient is 0.198. For every 1% increase in the independent variable, our dependent variable increases by about 0.20%. 
+
+## Graphing points by variety
+```{r}
+wine %>% 
+  filter(province=="Oregon") %>% 
+  filter(variety %in% c("Chardonnay","Pinot Noir","Pinot Gris")) %>% 
+  ggplot(aes(variety,points))+
+    geom_boxplot()
+```
+
+## Summary
+```{r}
+(tmp <- wine %>% 
+  filter(province=="Oregon") %>% 
+  filter(variety %in% c("Chardonnay","Pinot Noir","Pinot Gris")) %>% 
+  group_by(variety) %>% 
+  summarise(mean=mean(points)))
+```
+
+Note: 
+
+1. The difference between Pinot Gris and Chardonnay is `r tmp[["mean"]][2]-tmp[["mean"]][1]`
+2. The difference between Pinot Noir and Chardonnay is `r tmp[["mean"]][3]-tmp[["mean"]][1]`
+
+## Regression
+```{r}
+model <- lm(points~variety, 
+            filter(wine,province=="Oregon",variety %in% c("Chardonnay","Pinot Noir","Pinot Gris")))
+get_regression_table(model)
+```
+
+What is the equation for this regression?
+
+
+## Assumptions of linear regression
+
+1. **L**inearity of relationship between variables
+2. **I**ndependence of the residuals
+3. **N**ormality of the residuals
+4. **E**quality of variance of the residuals
+5. (No perfect multi-collinearity)
+
+## Linearity of relationship
+[*Credit:* Modern Dive](https://moderndive.com/5-regression.html)
+
+![](./images/non-linear.png)
+
+What would the residuals look like?
+
+## Independence
+
+Errors independent of features in particular means that they are centered around zero. If errors are not centered at zero, what does that mean for predictions?
+
+## Normality
+```{r}
+model <- lm(lprice~points, filter(wine,province=="Oregon"))
+get_regression_points(model) %>% 
+  ggplot(aes(residual))+
+    geom_histogram(color="white")
+
+```
+
+## Equality of variance
+
+```{r}
+get_regression_points(model) %>% 
+  ggplot(aes(points, residual))+
+    geom_jitter(alpha=0.2)
+```
+
+## No equality in the variance
+
+[*Credit:* Modern Dive](https://moderndive.com/5-regression.html)
+
+![](./images/unequal-variance.png)
+
+
+# Dinner (and vitural high fives)
+
+![](./images/comic3.png)
+
+# Preprocessing and BoxCox
+
+## Setup
+
+```{r}
+library(caret)
+library(class)
+library(fastDummies)
+# wine <- as.data.frame(read_rds("../resources/pinot.rds"))
+wine <- read_rds("../resources/pinot.rds")
+
+```
+
+# Preprocessing
+
+Box-Cox transformations use MLE to estimate $\lambda$
+
+$x^{*} = \frac{x^{\lambda}-1}{\lambda}$
+
+- when $\lambda=1$, there is no transformation (shift by 1)
+- when $\lambda=0$, it is log transformed (special case)
+- when $\lambda=0.5$, it is square root
+- when $\lambda=-1$, it is an inverse
+
+## Caret preprocessing is so easy!
+
+```{r}
+wine %>% 
+  preProcess(method = c("BoxCox","center","scale")) %>% 
+  predict(wine) %>% 
+  select(-description) %>% 
+  head()
+```
+
+But wait... what is wrong here?
+
+```{r}
+wino <- wine %>%
+  mutate(year_f = as.factor(year))
+
+wino <- wino %>% 
+  preProcess(method = c("BoxCox","center","scale")) %>% 
+  predict(wino)
+
+head(wino %>% select(starts_with("year")))
+```
+
+
+# The KNN Algorithm
+
+## Algorithm
+
+1. Load the data
+2. Initialize K to your chosen number of neighbors
+3. For each example in the data
+  1. Calculate the distance between the query example and the current example from the data.
+  2. Add the distance and the index of the example to an ordered collection
+4. Sort the ordered collection of distances and indices from smallest to largest (in ascending order) by the distances
+5. Pick the first K entries from the sorted collection
+6. Get the labels of the selected K entries
+7. If regression, return the mean of the K labels
+8. If classification, return the mode of the K labels
+
+## Let's draw it
+
+
+&nbsp;  
+&nbsp;  
+&nbsp;  
+&nbsp;  
+&nbsp;  
+&nbsp;  
+&nbsp;  
+&nbsp;
+&nbsp;  
+&nbsp;  
+&nbsp;  
+&nbsp;  
+&nbsp;  
+&nbsp;  
+&nbsp;  
+&nbsp;
+
+
+## Kappa accuracy statistic
+
+- We saw that accuracy isn't always good for evaluating classifiers.
+
+- $\kappa$ gives us another measure by comparing our model to "expected accuracy" = how well a classifier would do by chance.
+
+- $\kappa$ divides the difference by the difference between a perfect model and expected accuracy.
+
+$$ \kappa = \frac{\text{observed accuracy} - \text{expected accuracy}}{1 - \text{expected accuracy}}$$
+
+Rules of thumb:
+
+- \< 0.2 (not so good)
+- 0.21 - 0.4 (ok)
+- 0.41 - 0.6 (pretty good)
+- 0.6 - 0.8 (great)
+- \> 0.8 (almost perfect)
+
+## Engineering some features
+
+```{r}
+library(fastDummies)
+wine <- read_rds("/Users/charleshanks/Desktop/MSDS/SPRING_23/ML/pinot_orig.rds")
+
+wino <- wine %>%
+  mutate(year_f = as.factor(year))
+
+
+wino <- wino %>% 
+  mutate(taster_name = fct_lump(taster_name,5)) %>% 
+  dummy_cols(
+    select_columns = c("year_f","taster_name"),
+    remove_most_frequent_dummy = T, 
+    remove_selected_columns = T) %>% 
+  rename_all(funs(tolower(.))) %>% 
+  rename_all(funs(str_replace_all(., "-", "_"))) %>% 
+  rename_all(funs(str_replace_all(., " ", "_"))) %>% 
+  mutate(cherry = str_detect(description,"cherry")) %>% 
+  mutate(chocolate = str_detect(description,"chocolate")) %>%
+  mutate(earth = str_detect(description,"earth")) %>%
+  select(-description) 
+
+wino = wino %>% drop_na(.)
+
+head(wino) %>% 
+  select(1:8)
+
+```
+
+## Simple model
+
+```{r}
+library(caret)
+set.seed(504)
+wine_index <- createDataPartition(wino$province, p = 0.8, list = FALSE)
+train <- wino[ wine_index, ]
+test <- wino[-wine_index, ]
+
+fit <- knn(
+  train = select(train,-province), 
+  test = select(test,-province), 
+  k=5, 
+  cl = train$province, 
+  prob = T)
+```
+
+## Confusion matrix
+
+```{r}
+confusionMatrix(fit,factor(test$province))
+```
+
+
+## Kappa statistic
+
+Reminder:
+
+- \< 0.2 (not so good)
+- 0.21 - 0.4 (ok)
+- 0.41 - 0.6 (pretty good)
+- 0.6 - 0.8 (great)
+- \> 0.8 (almost perfect)
+
+...whoa! Should we be worried?
+
+## Fixing the leak
+
+```{r}
+
+library(caret)
+library(class)
+wino <- select(wino, -starts_with("taster")) # get rid of the taster variables
+wino
+set.seed(504)
+wine_index <- createDataPartition(wino$province, p = 0.8, list = FALSE)
+train <- wino[ wine_index, ]
+test <- wino[-wine_index, ]
+
+fit <- knn(
+  train = select(train,-province), 
+  test = select(test,-province), 
+  k=5, 
+  cl = train$province, 
+  prob = T)
+```
+
+## Confusion matrix
+
+```{r tidy=T, strip.white=T, comment=""}
+confusionMatrix(fit,factor(test$province))
+```
+
+## Basic model with parameter tuning
+
+```{r}
+control <- trainControl(method = "boot", number = 1)
+fit <- train(province ~ .,
+             data = train, 
+             method = "knn",
+             tuneLength = 15,
+             trControl = control)
+fit
+```
+
+
+## Confusion Matrix
+```{r}
+confusionMatrix(predict(fit, test),factor(test$province))
+```
+
+```
+
+## With parameter tuning and subsampling
+
+```{r}
+fit <- train(province ~ .,
+             data = train, 
+             method = "knn",
+             tuneLength = 15,
+             metric = "Kappa",
+             trControl = control)
+
+fit
+```
+
+## Tuning plot
+
+```{r}
+ggplot(fit, metric="Kappa")
+```
+
+
+## Group modeling problem I
+
+* Practice running different versions of the model
+* Create some new features and
+* see if you can achieve a Kappa >= 0.5
+
+
+## Bonus: KNN for regression
+
+```{r}
+fit <- train(price ~ .,
+             data = train, 
+             method = "knn",
+             tuneLength = 15,
+             trControl = control)
+fit
+
+```
+
+
+```{r}
+wine
+```
+

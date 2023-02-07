@@ -1,0 +1,42 @@
+---
+title: "group_model"
+output: pdf_document
+date: "2023-01-25"
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+```{r}
+pinot
+
+pinot %>% mutate(
+      fruit 
+)
+
+
+pinot %>% filter(str_detect(description, "berry")) %>% group_by(province) %>% summarize(n = n())
+
+
+pinot %>% group_by(province) %>% summarize(n=n(), percentage = n/8380)
+
+unique(pinot$province)
+#Oregon, California, Burgundy, Malborough, Casablanca_valley, New_York
+
+#Brainstorm 
+#california has a lot of chard, aged in oak 
+
+pinot %>% filter(province == "Burgundy") %>% filter(str_detect(description, "tannins"))
+#750 
+
+pinot %>% filter(province == "California") %>% filter(str_detect(description, "tannins"))
+#536 
+
+
+pinot %>% filter(province == "California") %>% filter(str_detect(description, "tannins"))
+
+
+```
+

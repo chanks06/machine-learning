@@ -1,0 +1,73 @@
+---
+title: "ML_pinot_project_local"
+output: pdf_document
+date: "2023-01-25"
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+EDA of pinot dataset for Feature Engineering 
+```{r}
+
+nrow(pinot)
+
+pinot %>% group_by(province) %>% summarize(prov_freq = n(), percent_of_ds = round(prov_freq/8380,2))
+#nearly half of wines are californian, good to know... 
+
+pinot %>% filter(str_detect(description, "[Oo]ak")) %>% nrow()
+#1301/8380 have the work oak in description 
+
+pinot %>% filter(str_detect(description, "[Oo]ak")) %>% 
+  group_by(province) %>% summarize(prov_freq = n(), oak_perc = round(prov_freq/1301,2))
+#it is likely California or Oregon if there is oak in the description 
+
+pinot %>% filter(province == "casa")
+#some french language patterns to think about developing a regex from: 
+# "_de_" / "d'"
+# "name-name"
+# accented letters: "é","ô",
+# "St."
+
+pinot %>% group_by(province) %>% summarize(avgPrice = mean(price), avgPoints = mean(points))
+#Burgundy wines are on average significantly more expensive...and casablanca valley wines on average have the lowest price and score.  
+
+#which wines do people recommend waiting before drinking? i.e "drink from XXXX" 
+#"edge","tannins","dense","firm", 
+
+province_vec = c("Burgundy", "California", "Casablanca_Valley","Marlborough", "New_York", "Oregon")
+
+for(i in province_vec){
+  plot = ggplot(pinot %>% filter(province == i), aes(x = year, y = points)) + geom_point(alpha =.5, color = "forestgreen") + ggtitle(i)
+  print(plot)
+}
+
+for(i in province_vec){
+  plot2 = ggplot(pinot %>% filter(province == i), aes(x = year)) + geom_histogram(binwidth =3) + ggtitle(i)
+  print(plot2)
+}
+
+
+#Some findings:
+#california pinot noir production did not begin until ~2008, then exploded! 
+#before year 2000, likely to be oregon 
+#burgundy pinots score high around 2005, after almost no burgundy pinots between 2000 and 2005
+#California pinot game WAY STRONG between 2010 and 2015
+#New York pinot score high between 2008 and 2015 
+#What happened around 2014?? Counts drop across provinces....
+
+
+```
+
+##Some domain knowledge about pinot noir...
+
+Oregon:
+-fruit forward
+-lower in sugar, less alcoholic
+-barnyard aroma 
+-Original pioneer for Oregon Pinot Noir was David Lett, who opened Eyrie Vineyward in 1965
+
+France 
+-Pinot noir originates in Burgundy region of france 
+

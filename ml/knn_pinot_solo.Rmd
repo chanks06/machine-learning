@@ -1,0 +1,83 @@
+---
+title: "ML_pinot_project"
+output: html_document
+date: "2023-02-05"
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+Predicting Province
+
+ML model type: Knn 
+resampling: cv 
+ds: pinot 
+
+
+```{r}
+library(caret)
+library(tidyverse)
+
+w %>% group_by(province) %>% summarize(avg_points = mean(points), sd_points = sd(points), max_points = max(points), min_points = min(points), max_price = max(lprice), avg_price = mean(lprice), min_lprice = min(lprice),sd_price = sd(lprice))
+
+w = wine %>% mutate(f_year = as.factor(year))
+
+w = wine %>% mutate(lprice = log(price),
+                    fyear = as.factor(year),
+                    oak = as.integer(str_detect(description, "[Oo]ak")),
+                    earth = as.integer(str_detect(description, "[Ee]arth")),
+                    cherry = as.integer(str_detect(description, "[Cc]herry")),
+                    choc = as.integer(str_detect(description, "[Cc]hocolate")),
+                    acidity = as.integer(str_detect(description, "[Aa]cidity")),
+                    nose = as.integer(str_detect(description, "[Nn]ose")),
+                    palate = as.integer(str_detect(description, "[Pp]alate")),
+                    chocolate = as.integer(str_detect(description,"[Cc]hocolate")),
+                    tart = as.integer(str_detect(description,"[Tt]art")),
+                    brisk = as.integer(str_detect(description,"[Bb]risk")),
+                    bramble = as.integer(str_detect(description,"[Bb]ramble")),
+                    aging = as.integer(str_detect(description, "[Aa]ging")),
+                    savory =as.integer(str_detect(description, "[Ss]avory")),
+                    clover = as.integer(str_detect(description, "[Cc]love")),
+                    aromas = as.integer(str_detect(description, "[Aa]romas")),
+                    fruits = as.integer(str_detect(description, "[Ff]ruits")),
+                    nose = as.integer(str_detect(description, "[Nn]ose")),
+                    points_greater_95 = points >=95, 
+                    points_less_90 = points <= 90,
+                    price_greater4 = lprice >= 4, 
+                    price_between_4_3 = lprice < 4 & lprice >= 3, 
+                    price_less_3 = lprice < 3,
+                    before_2010 = year < 2010, 
+                    beween_2010_2015 = (year >=2010 & year <= 2015),
+                    between_2015_2020 = (year > 2015 & year <= 2020)) %>%
+                    select(-id,-price,-description)
+                    
+
+#before_2005 = year <=2005,
+#lprice_above_5 = lprice > 5,
+#below_88pts = points < 88)  %>% 
+```
+
+
+
+Code for train/test model 
+```{r}
+library(caret)
+set.seed(504)
+
+wine_index <- createDataPartition(w$province, p = 0.8, list = FALSE)
+train <- w[ wine_index, ]
+test <- w[-wine_index, ]
+
+fit <- train(province ~ .,             
+	data = train,              
+	method = "knn",             
+	tuneLength = 15,             
+	trControl = control)
+
+fit
+
+confusionMatrix(predict(fit,test), factor(test$province)) 
+
+```
+

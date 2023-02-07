@@ -1,0 +1,98 @@
+---
+title: "eda_wine"
+output: pdf_document
+date: "2023-01-24"
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## R Markdown
+
+```{r}
+knitr::opts_knit$set(root.dir = "/Users/charleshanks/Desktop/MSDS/SPRING_23/ML")
+setwd("/Users/charleshanks/Desktop/MSDS/SPRING_23/ML")
+library(tidyverse)
+library(caret)
+library(fastDummies)
+wine = read_rds("wine.rds")
+```
+
+
+```{r}
+wine = wine %>% mutate(lprice = log(price))
+head(wine)
+
+ggplot(wine, aes(x = year, y=lprice)) + geom_point()
+
+ggplot(wine,aes(x = points, y=lprice)) + geom_point()
+#points > 95? 
+
+wine %>% filter(points>95) %>% group_by(taster_name) %>% summarize(avg_price = mean(lprice), winery)
+
+ggplot(wine, aes(x = taster_name, y = lprice)) + geom_boxplot() + coord_flip()
+#voss reviews more expensive wine 
+#lijima too 
+
+wine %>% filter(str_detect(taster_name, "lijima"))
+
+unique(wine$taster_name)
+
+ggplot(wine, aes(x = variety, y = lprice)) + geom_boxplot() + coord_flip()
+
+wine %>% filter(str_detect(description,"[Dd]rink now"))
+```
+```{r}
+wine %>% 
+group_by(winery, year) %>% 
+summarize(avg_score = mean(points), num_review = n()) %>%   
+select(year, winery, num_review, avg_score) %>% 
+ arrange(winery, year) %>%   
+mutate(yoy_change = avg_score -lag(avg_score))
+```
+
+
+```{r}
+#ben's solution 
+
+wino = wine %>% 
+  mutate(lprice=log(price)) %>% 
+  # engineer features here
+  mutate(winery=fct_lump(winery,5)) %>%
+  mutate(cab=as.integer(str_detect(variety,"[Cc]abernet"))) %>%
+  mutate(chard=as.integer(str_detect(variety,"[Cc]hardonnay"))) %>% 
+  mutate(plum=as.integer(str_detect(description, "[Pp]lum"))) %>% 
+  mutate(dry=as.integer(str_detect(description, "[Dd]ry"))) %>% 
+  drop_na(.) %>% 
+  select(lprice, points,winery,cab,chard,plum,dry) %>% 
+    dummy_cols("winery",remove_selected_columns = T)
+
+cor(wino)
+
+wino_index = createDataPartition(wino$lprice, p  = 0.8, list = FALSE) 
+
+wino_train <- wino[wino_index, ]
+wino_test <- wino[-wino_index, ]
+
+control <- trainControl(method="boot", number=5)
+
+modelo <- train(lprice ~ .,
+             data = wino_train,
+             method = "lm",
+             trControl = control)
+
+modelo
+
+vin_pred <- predict(modelo, wino_test)
+
+postResample(pred = vin_pred, obs=vin_test$lprice)
+
+
+importance <- varImp(modelo, scale=TRUE)
+plot(importance)
+
+library(car)
+vif(modelo)
+```
+

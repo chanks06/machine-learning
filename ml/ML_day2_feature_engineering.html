@@ -1,0 +1,1637 @@
+
+    <!DOCTYPE html>
+<html lang="en-US" dir="ltr" class="Mrphs-html">
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+
+        <script>                                     var portal = {
+                "bullhorns": {
+                    "enabled": false,
+                                    },
+                "chat": {
+                    "enabled": false,
+                    "pollInterval": 5000,
+                    "video" : {
+                        "enabled": true
+                    }
+                },
+                "i18n": {},
+                "loggedIn": true,
+                "portalPath": "https://wise.willamette.edu/portal",
+                "loggedOutUrl": "https://wise.willamette.edu/portal",
+                "siteId": "~5ee36c5c-56db-4e89-bfbd-959bcfe61336",
+                "siteTitle": "Home",
+                "shortDescription" : "",
+                "toolsCollapsed":  false ,
+                "locale": "en-US",
+                "user": {
+                    "id": "5ee36c5c-56db-4e89-bfbd-959bcfe61336",
+                    "eid": "chanks",
+                    "userType": "",
+                    "siteRole": "maintain"
+                },
+                "timeoutDialog" : {
+                "enabled": true,
+                "seconds": 600
+                },
+                "toggle" : {
+                    "allowauto": false,
+                    "tools": false,
+                    "sitenav": false // This is not allowed in morpheus
+                },
+                "pageScriptPath" : "/library/js/",
+                "editor" : {
+                    "type": "",
+                },
+                "portalCDNQuery" : "?version=ee66a9f9"
+            };
+        </script>
+
+            <!-- Head material from Tool in PDA mode (will include title and headscripts) -->
+    
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+    <meta http-equiv="Content-Style-Type" content="text/css" />
+    
+    <link href="/library/skin/tool_base.css?version=ee66a9f9" type="text/css" rel="stylesheet" media="screen, tty, tv, handheld, projection" />
+<script type="text/javascript" src="/library/js/headscripts.js?version=ee66a9f9"></script>
+<script type="text/javascript">var sakai = sakai || {}; sakai.editor = sakai.editor || {}; sakai.editor.editors = sakai.editor.editors || {}; sakai.editor.editors.ckeditor = sakai.editor.editors.ckeditor || {}; sakai.locale = sakai.locale || {};
+sakai.locale.userCountry = 'US';
+sakai.locale.userLanguage = 'en';
+sakai.locale.userLocale = 'en_US';
+sakai.editor.collectionId = '/user/5ee36c5c-56db-4e89-bfbd-959bcfe61336/';
+sakai.editor.enableResourceSearch = false;
+sakai.editor.contentItemUrl = '/portal/tool/1bc417f6-577f-4fec-8044-32714928cbb6/sakai.basiclti.admin.helper.helper?panel=CKEditor';
+sakai.editor.siteToolSkin = '/library/skin/wise-default/tool.css';
+sakai.editor.sitePrintSkin = '/library/skin/wise-default/print.css';
+sakai.editor.editors.ckeditor.browser = 'elfinder';
+</script>
+<script type="text/javascript">var CKEDITOR_BASEPATH='/library/webjars/ckeditor/4.9.1/full/';
+</script>
+<script type="text/javascript" src="/library/webjars/ckeditor/4.9.1/full/ckeditor.js?version=ee66a9f9"></script>
+<script type="text/javascript" src="/library/editor/ckeditor.launch.js?version=ee66a9f9"></script>
+
+<script type="text/javascript">includeLatestJQuery("site-manage-chef-header");</script>
+<script type="text/javascript" src="/sakai-site-manage-tool/js/site-manage.js?version=ee66a9f9"></script>
+<script type="text/javascript" src="/library/js/spinner.js?version=ee66a9f9"></script>	
+    
+    	            
+    
+  
+    <!-- End of Head material from Tool -->
+ <title>WISE : Home : Worksite Setup</title>
+        <!--[if (lt IE 9)]>
+  <link href="/library/skin/wise-default/tool-ie.css?version=ee66a9f9" rel="stylesheet">
+<![endif]-->
+<link href="/library/skin/wise-default/tool.css?version=ee66a9f9" rel="stylesheet" media="screen, tty, tv, handheld, projection">
+<link href="/library/skin/wise-default/print.css?version=ee66a9f9" rel="stylesheet" media="print">        
+        <link href="/library/webjars/jquery-ui/1.12.1/jquery-ui.min.css?version=ee66a9f9" rel="stylesheet" />  
+        <link href="/library/js/jquery/cluetip/1.2.10/css/jquery.cluetip.css?version=ee66a9f9" rel="stylesheet">
+        <link href="/library/js/jquery/qtip/jquery.qtip-latest.min.css?version=ee66a9f9" rel="stylesheet">
+        <link href="/library/webjars/pnotify/2.1.0/pnotify.core.min.css?version=ee66a9f9" rel="stylesheet">
+	<link href="/library/webjars/pnotify/2.1.0/pnotify.buttons.min.css?version=ee66a9f9" rel="stylesheet">
+        <link href="/library/webjars/cropper/2.3.2/dist/cropper.min.css?version=ee66a9f9" rel="stylesheet">
+        <script src="/library/skin/wise-default/js/lib/modernizr.js?version=ee66a9f9"></script>
+            
+        <!-- inlined tool header contribution -->
+                        	        		
+        	                        <!-- end inlined tool header contribution -->
+    </head>
+
+    <body  class="Mrphs-portalBody workspace "  class="workspace">
+
+        <noscript>
+            <span id="portal_js_warn" class="Mrphs-noJs js-warn-no-js">Sakai works much better when JavaScript is enabled. Please enable JavaScript in your Browser.</span>
+        </noscript>
+        
+                 
+        <div  class="Mrphs-portalWrapper">
+
+                        <nav id="skipNav" class="Mrphs-skipNav">
+    <ul class="Mrphs-skipNav__menu">
+
+                 <li class="Mrphs-skipNav__menuitem Mrphs-skipNav__menuitem--content">
+            <a href="#tocontent" class="Mrphs-skipNav__link" title="jump to content" accesskey="c">
+                jump to content
+                <span class="accesibility_key">[c]</span>
+            </a>
+        </li>
+        <li class="Mrphs-skipNav__menuitem Mrphs-skipNav__menuitem--worksite">
+            <a href="#txtSearch" id="more-sites-menu" class="Mrphs-skipNav__link js-toggle-sites-nav" title="jump to site list" accesskey="w">
+                <i class="fa fa-th all-sites-icon" aria-hidden="true"></i> Sites
+                <span class="accesibility_key">[w]</span>
+            </a>
+        </li>
+        <li class="Mrphs-skipNav__menuitem Mrphs-skipNav__menuitem--tools">
+            <a href="#totoolmenu" class="Mrphs-skipNav__link js-toggle-tools-nav" title="jump to tools list" accesskey="l">
+                <i class="fa fa-bars tools-icon" aria-hidden="true"></i>
+                Tools
+                <span class="accesibility_key">[l]</span>
+            </a>
+																																																						<a href="https://wise.willamette.edu/portal/site/%7Echanks/tool-reset/7d162c73-6750-4b03-937b-5f026f63ee4d" title="Tool Home" class="xs-visible Mrphs-skipNav--toolName">
+						<span class="Mrphs-breadcrumb--icon icon-sakai--sakai-sitesetup "></span>
+						<span>Worksite Setup</span>
+					</a>
+																																																	        </li>
+    </ul>
+</nav>
+
+            <div  class="Mrphs-mainHeader is-maximized" >
+
+                                <div class="Mrphs-topHeader">
+                    
+<header role="banner" class="Mrphs-headerLogo">
+    <span class="Mrphs-headerLogo--institution"></span>
+    <span class="Mrphs-headerLogo--banner"></span>
+
+    
+<nav id="mastLogin" class="Mrphs-loginNav">
+
+    
+                     
+                    
+        
+                    <div class="Mrphs-sitesNav__menuitem view-all-sites-btn">
+                <a href="javascript:void(0);" title="View All Sites" aria-haspopup="true">
+                    <i class="fa fa-th all-sites-icon" aria-hidden="true"></i> <span class="all-sites-label">Sites</span>
+                </a>
+            </div>
+        
+        <ul id="loginLinks" class="Mrphs-userNav">
+
+                
+                    
+                        <li class="Mrphs-userNav__popup js-toggle-user-nav">
+
+                                
+                                    
+                                        <div id="loginUser" class="has-avatar Mrphs-userNav__submenuitem--userlink  current-site ">
+                                            <a href="javascript:void(0);" role="button" aria-haspopup="true" class="Mrphs-userNav__drop-btn Mrphs-userNav__submenuitem--username">
+                                                <span class="Mrphs-userNav__submenuitem--profilepicture" style="background-image:url(/direct/profile/5ee36c5c-56db-4e89-bfbd-959bcfe61336/image/thumb)"></span>
+                                                <span class="textlink">Charles</span>
+                                            </a>
+                                        </div>
+
+                                     
+                                 
+                            <ul class="Mrphs-userNav__subnav is-hidden" role="menu">
+
+                                <li class="Mrphs-userNav__submenuitem Mrphs-userData">
+                                    <div class="Mrphs-userNav__submenuitem--profile-and-image">
+                                                                                    <div class="has-avatar">
+                                                <a role="menuitem" class="Mrphs-userNav__submenuitem--profilelink" href="https://wise.willamette.edu/portal/site/%7Echanks/tool-reset/1bedfc9f-9035-40af-b082-df721f2c6810" aria-haspopup="dialog">
+                                                    <span class="Mrphs-userNav__submenuitem--profilepicture Mrphs-userNav__pic-changer" style="background-image:url(/direct/profile/5ee36c5c-56db-4e89-bfbd-959bcfe61336/image/thumb)"></span>
+                                                    <span class="sr-only">Change Profile Picture</span>
+                                                </a>
+                                            </div>
+                                            <div class="Mrphs-userNav__submenuitem--profile">
+                                                <a role="menuitem" href="https://wise.willamette.edu/portal/site/%7Echanks/tool-reset/1bedfc9f-9035-40af-b082-df721f2c6810">
+                                                    <span>Profile</span>
+                                                </a>
+                                            </div>
+                                                                            </div>
+                                    <div class="Mrphs-userNav__submenuitem--fullname-and-id">
+                                        <div class="Mrphs-userNav__submenuitem--fullname">
+                                            Charles Hanks
+                                        </div>
+                                        <div class="Mrphs-userNav__submenuitem--displayid">
+                                            chanks
+                                        </div>
+                                    </div>
+                                </li>
+
+                                <li class="Mrphs-userNav__submenuitem Mrphs-userNav__submenuitem-indented">
+                                    <a role="menuitem" href="javascript:;" id="Mrphs-userNav__submenuitem--connections" aria-haspopup="dialog">
+                                        <span>My Connections</span>
+                                    </a>
+                                </li>
+
+                                                
+                                        <li class="Mrphs-userNav__submenuitem Mrphs-userNav__submenuitem-indented">
+                                            <a role="menuitem" href="https://wise.willamette.edu/portal/site/%7Echanks/page/0a1acbda-5105-416c-9eb3-3681c4f4165e" class="Mrphs-userNav__submenuitem--calendar">
+                                                <span>Calendar</span>
+                                            </a>
+                                        </li>
+            
+                                     
+                                    
+                                        <li class="Mrphs-userNav__submenuitem Mrphs-userNav__submenuitem-indented">
+                                            <a role="menuitem" href="https://wise.willamette.edu/portal/site/%7Echanks/page/f992458a-ffa7-4aae-99dc-df7555520e0d" class="Mrphs-userNav__submenuitem--prefs">
+                                                <span>Preferences</span>
+                                            </a>
+                                        </li>
+
+                                     
+                                    
+                                        <li class="Mrphs-userNav__submenuitem Mrphs-userNav__submenuitem-indented">
+                                            <a id="tutorialLink" role="menuitem" href="#" onclick="startTutorial({});" class="Mrphs-userNav__submenuitem--tutorial" aria-haspopup="dialog">
+                                                <span>Tutorial</span>
+                                            </a>
+                                        </li>
+
+                                     
+                             
+                        
+                     
+                        
+                     
+                        
+                     
+                        
+                     
+                        
+                     
+                         
+                            <li class="Mrphs-userNav__logout Mrphs-userNav__submenuitem-indented">
+                                <div id="loginLinksImage" class="Mrphs-loginUser" tabindex="0">
+
+    
+        <p class="Mrphs-loginUser__menuitem">
+            <a href="https://wise.willamette.edu/portal/logout" title="Log Out" id="loginLink1" class="Mrphs-loginUser__message" data-warning="">
+                <i class="login-Icon"></i>
+                <span class="Mrphs-login-Message">Log Out</span>
+            </a>
+        </p>
+
+     
+     
+</div>
+                            </li>
+
+                        </ul>
+
+            </li>
+
+        </ul> <!-- end of nav#loginLinks-->
+
+             
+</nav>
+</header>                </div>
+
+                                                        
+    
+    
+         
+         
+ 
+
+         
+
+         
+
+         
+
+         
+
+         
+
+         
+ 
+<!-- START VM includeTabs.vm -->
+    <div id="Mrphs-sites-nav" class="siteNavWrap workspace Mrphs-container Mrphs-container--navs">
+
+        <nav id="linkNav" role="navigation" aria-labelledby="sitetabs" class="Mrphs-sitesNav" data-max-tools-int="10" data-max-tools-anchor="Go to the site to view all">
+    <h1 class="skip" tabindex="-1" id="sitetabs">Sites list begins here</h1>
+    <div id="show-all-sites" tabindex="-1"><i class="fa fa-angle-double-left" aria-hidden="true"></i><span>All Sites</span></div>
+    <div id="topnav_container">
+        <ul class="Mrphs-sitesNav__menu" id="topnav" aria-label="Sites list begins here">
+
+            
+                                    <li class="Mrphs-sitesNav__menuitem Mrphs-sitesNav__menuitem--myworkspace  is-selected ">
+                        <a class="link-container" href="https://wise.willamette.edu/portal/site/%7Echanks" title="Home">
+                            <span class="fa fa-home" aria-hidden="true"></span>
+                            <span class="Mrphs-sitesNav__menuitem--myworkspace-label">Home</span>
+                        </a>
+                        <a class="Mrphs-sitesNav__dropdown" href="#" data-site-id="~5ee36c5c-56db-4e89-bfbd-959bcfe61336" aria-haspopup="true" aria-label="Home - open attached menu"></a>
+                    </li>           
+                 
+                                 
+            
+                 
+                                                    <li class="Mrphs-sitesNav__menuitem ">
+                        <a class="link-container" href="https://wise.willamette.edu/portal/site/DATA-505-01-23_SP" title="DATA-505-01-23/SP">
+                            <span>DATA-505-01-23/SP</span>
+                        </a>
+                        <a class="Mrphs-sitesNav__dropdown" href="#" data-site-id="DATA-505-01-23_SP" aria-haspopup="true" aria-label="DATA-505-01-23/SP - open attached menu"></a>
+                    </li>
+
+                 
+            
+                 
+                                                    <li class="Mrphs-sitesNav__menuitem ">
+                        <a class="link-container" href="https://wise.willamette.edu/portal/site/DATA-599-02-23_SP" title="DATA-599-02-23/SP">
+                            <span>DATA-599-02-23/SP</span>
+                        </a>
+                        <a class="Mrphs-sitesNav__dropdown" href="#" data-site-id="DATA-599-02-23_SP" aria-haspopup="true" aria-label="DATA-599-02-23/SP - open attached menu"></a>
+                    </li>
+
+                 
+            
+                 
+                                 
+            
+                 
+                                 
+            
+                 
+                                 
+                     </ul>
+    </div>
+
+</nav> <!-- /Mrphs-sitesNav -->
+
+    </div> <!-- /end of div.tabsCssClass -->
+    
+<!-- END VM includeTabs.vm -->
+                 
+            </div>
+
+                <div id="maxToolsText" style="display: none">Go to the site to view all</div>
+    <div id="maxToolsInt" style="display: none">10</div>
+    <div id="refreshNotificationText" style="display: none"><a href="javascript:location.reload()">Reload</a> to see your updated favorite sites</div>
+    <div id="addToFavoritesText" style="display: none">Add [site] to favorites</div>
+    <div id="removeFromFavoritesText" style="display: none">Remove [site] from favorites</div>
+    <div id="maxFavoritesLimitReachedText" style="display: none">Only the first 15 sites (above) will display in your favorites bar.</div>
+
+    <div id="selectSiteModal" class="outscreen" role="dialog" aria-label="Navigate to a site, mark a site as a favorite, or organize favorites">
+
+        <div class="hidden" id="max-favorite-entries">15</div>
+
+        <ul id="otherSitesMenu" role="menu">
+            
+                <li><a role="menuitem" id="allSites" href="https://wise.willamette.edu/portal/site/%7Echanks/tool-reset/7d162c73-6750-4b03-937b-5f026f63ee4d"><span>View All Sites</span></a></li>
+
+                 
+             
+            
+                <li><a role="menuitem" href="https://wise.willamette.edu/portal/site/%7Echanks/page/f992458a-ffa7-4aae-99dc-df7555520e0d"><span>Preferences</span></a></li>
+
+             
+            <li class="otherSitesMenuClose">
+                <a role="menuitem" href="javascript:void(0);">
+                    <span class="sr-only">Close this drawer</span>
+                    <span class="fa fa-times" aria-hidden="true"></span>
+                </a>
+            </li>
+        </ul>
+
+        <div id="selectSite">
+            <!-- View all sites, add new site, preferences -->
+            <ul class="tab-bar" role="tablist">
+                <li class="tab-btn active" id="tab-othersites" aria-selected="true" role="tab" data-tab-target="otherSitesCategorWrap" tabindex="0">
+                    Sites
+                </li>
+                <li class="organizeFavorites tab-btn" id="tab-favorites" aria-selected="false" role="tab" data-tab-target="organizeFavorites" tabindex="-1">
+                    <span class="favorites-desktop">Organize Favorites</span>
+                    <span class="favorites-mobile">Favorites</span>
+                    <span class="favoriteCountAndWarning">
+                        <span class="favoriteCount"></span>
+                        <span id="favoriteMaxWarningIndicator"> <span class="fa fa-warning" aria-hidden="true"></span></span>
+                    </span>
+                </li>
+            </ul>
+
+            <div class="tab-pane">
+                <div class="tab-box" id="otherSitesCategorWrap" aria-labelledby="tab-othersites" role="tabpanel">
+
+                    <p style="display: none" class="favorites-help-text autofavorite-enabled">Star sites below to add them to your favorites bar. New sites will be automatically added to your favorites.</p>
+                    <p style="display: none" class="favorites-help-text autofavorite-disabled">Star sites below to add them to your favorites bar.</p>
+
+                    <hr />
+
+                    <div id="otherSiteSearch">
+                        <label for="txtSearch">Filter sites</label>
+                        <input type="text" id="txtSearch" name="txtSearch" maxlength="50">
+                        <a id="otherSiteSearchClear" class="other-site-search-clear" href="javascript:void(0);"></a>
+                    </div>
+                    <div id="noSearchResults" class="is-hidden">No search results found</div>
+
+
+                    
+                    <div class="moresites-left-col">
+                                                                                    <div class="fav-sites-term">
+                                                                            <h3 class="favorites-term-header"><a href='javascript:void(0);' class="favorites-select-all-none"></a>22/FA</h3>
+                                    
+                                    <ul class="otherSitesCategorList favoriteSiteList">
+                                                                                                            <li role="presentation" class="fav-sites-entry  ">
+                                                        	<a class="site-favorite-btn" data-site-id="DATA-501-01-22_FA" href="javascript:void(0);"></a>
+                            							
+                            <div class="fav-title ">
+                            	<a href="https://wise.willamette.edu/portal/site/DATA-501-01-22_FA" title="DATA-501-01-22/FA">
+                                                                            <span class="fullTitle">DATA-501-01-22/FA</span>
+                                                                    </a>
+                            </div>
+                            <a href="#" id="DATA-501-01-22_FA" class="toolMenus" aria-haspopup="true" aria-label="DATA-501-01-22/FA - open attached menu">
+                                <span class="fa fa-chevron-down" aria-hidden="true"></span>
+                            </a>
+                        </li>
+                                                                                                                                <li role="presentation" class="fav-sites-entry  ">
+                                                        	<a class="site-favorite-btn" data-site-id="DATA-502-01-22_FA" href="javascript:void(0);"></a>
+                            							
+                            <div class="fav-title ">
+                            	<a href="https://wise.willamette.edu/portal/site/DATA-502-01-22_FA" title="DATA-502-01-22/FA">
+                                                                            <span class="fullTitle">DATA-502-01-22/FA</span>
+                                                                    </a>
+                            </div>
+                            <a href="#" id="DATA-502-01-22_FA" class="toolMenus" aria-haspopup="true" aria-label="DATA-502-01-22/FA - open attached menu">
+                                <span class="fa fa-chevron-down" aria-hidden="true"></span>
+                            </a>
+                        </li>
+                                                                                                                                <li role="presentation" class="fav-sites-entry  ">
+                                                        	<a class="site-favorite-btn" data-site-id="DATA-503-01-22_FA" href="javascript:void(0);"></a>
+                            							
+                            <div class="fav-title ">
+                            	<a href="https://wise.willamette.edu/portal/site/DATA-503-01-22_FA" title="DATA-503-01-22/FA">
+                                                                            <span class="fullTitle">DATA-503-01-22/FA</span>
+                                                                    </a>
+                            </div>
+                            <a href="#" id="DATA-503-01-22_FA" class="toolMenus" aria-haspopup="true" aria-label="DATA-503-01-22/FA - open attached menu">
+                                <span class="fa fa-chevron-down" aria-hidden="true"></span>
+                            </a>
+                        </li>
+                                                                                                </ul>
+                                </div>
+                                                                                                                <div class="fav-sites-term">
+                                                                            <h3 class="favorites-term-header"><a href='javascript:void(0);' class="favorites-select-all-none"></a>23/SP</h3>
+                                    
+                                    <ul class="otherSitesCategorList favoriteSiteList">
+                                                                                                            <li role="presentation" class="fav-sites-entry  ">
+                                                        	<a class="site-favorite-btn" data-site-id="DATA-505-01-23_SP" href="javascript:void(0);"></a>
+                            							
+                            <div class="fav-title ">
+                            	<a href="https://wise.willamette.edu/portal/site/DATA-505-01-23_SP" title="DATA-505-01-23/SP">
+                                                                            <span class="fullTitle">DATA-505-01-23/SP</span>
+                                                                    </a>
+                            </div>
+                            <a href="#" id="DATA-505-01-23_SP" class="toolMenus" aria-haspopup="true" aria-label="DATA-505-01-23/SP - open attached menu">
+                                <span class="fa fa-chevron-down" aria-hidden="true"></span>
+                            </a>
+                        </li>
+                                                                                                                                <li role="presentation" class="fav-sites-entry  ">
+                                                        	<a class="site-favorite-btn" data-site-id="DATA-599-02-23_SP" href="javascript:void(0);"></a>
+                            							
+                            <div class="fav-title ">
+                            	<a href="https://wise.willamette.edu/portal/site/DATA-599-02-23_SP" title="DATA-599-02-23/SP">
+                                                                            <span class="fullTitle">DATA-599-02-23/SP</span>
+                                                                    </a>
+                            </div>
+                            <a href="#" id="DATA-599-02-23_SP" class="toolMenus" aria-haspopup="true" aria-label="DATA-599-02-23/SP - open attached menu">
+                                <span class="fa fa-chevron-down" aria-hidden="true"></span>
+                            </a>
+                        </li>
+                                                                                                </ul>
+                                </div>
+                                                                                                                            </div>
+
+                    <div class="moresites-right-col">
+                                                                                                                                                                                            <div class="fav-sites-term">
+                                                                            <h3 class="favorites-term-header"><a href='javascript:void(0);' class="favorites-select-all-none"></a>OTHER</h3>
+
+                                        <ul class="otherSitesCategorList favoriteSiteList">
+                                            <!-- anchor "my workspace" to the top of the list -->
+                                                                                                                                                                        <li role="presentation" class="fav-sites-entry is-selected  my-workspace ">
+                            							
+                            <div class="fav-title  fav-title-myworkspace ">
+                            	<a href="https://wise.willamette.edu/portal/site/%7Echanks" title="Home">
+                                                                            <span class="fa fa-home" aria-hidden="true"></span><span class="fullTitle">Home</span>
+                                                                    </a>
+                            </div>
+                            <a href="#" id="~5ee36c5c-56db-4e89-bfbd-959bcfe61336" class="toolMenus" aria-haspopup="true" aria-label="Home - open attached menu">
+                                <span class="fa fa-chevron-down" aria-hidden="true"></span>
+                            </a>
+                        </li>
+                                                                                                                
+                                                                                                                                                                                </ul>
+                                                                    </div>
+                                                                        </div>
+
+                </div><!--  end of #otherSitesCategorWrap -->
+
+                <div style="display: none" class="tab-box" id="organizeFavorites" aria-labelledby="tab-favorites" role="tabpanel">
+                    <div id="organize-favorites-pane">
+                        <h2 class="heading">Organize Favorites</h2>
+
+                        <p style="display: none" id="favoritesToShow">Drag sites to reorder them. Up to 15 sites can be displayed in your favorites bar.</p>
+
+                        <p style="display: none" id="noFavoritesToShow">You do not have any favorite sites. Star sites in the "My Sites" menu to add them to your favorites.</p>
+
+                        <ul id="organizeFavoritesList" class="organizeFavoritesList favoriteSiteList">
+                        </ul>
+
+                        <!-- Items are put here when unfavorited from the "organize" screen -->
+                        <ul id="organizeFavoritesPurgatoryList" class="favoriteSiteList">
+                        </ul>
+                    </div>
+
+                    <div id="favorite-settings-pane">
+                        <div id="autofav-description">Automatically add new sites to your favorites bar:</div>
+
+                        <div class="onoffswitch" style="display: none">
+                            <button role="switch" aria-checked="true" aria-labelledby="autofav-description" class="btn btn-lg" id="autoFavoritesEnabled">
+                                <span class="onoffswitch-inner">On</span>
+                                <span class="onoffswitch-switch">Off</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+            <!-- START VM includePageWithNav.vm -->
+
+    <div id="pageBody">
+    
+    
+        <!-- START VM includePageNav.vm -->
+
+<div id="toolMenuWrap" class="Mrphs-container Mrphs-container--nav-tools"  scrollingToolbarEnabled >
+
+     
+    <h1 class="skip" tabindex="-1" id="totoolmenu">Tools list begins here</h1>
+    <!--Added this check in to make sure that we just don't have an empty img element in the page. -->
+	
+	<div id="toolSubsitesContainer">
+		<nav id="toolMenu" role="navigation" aria-label="Tools list begins here" class="Mrphs-toolsNav__menu">
+			<ul>
+				<li id="toolsNav-toggle-li" class="Mrphs-toolsNav__menuitem Mrphs-collapseTools  max ">
+					<button type="button" aria-pressed="false" title="Expand/collapse tool navigation" class="Mrphs-toggleNav js-toggle-nav btn-link   max ">
+						<span class="fa fa-lg fa-angle-double-left" aria-hidden="true"></span>
+						<span class="sr-only">Expand/collapse tool navigation</span>
+					</button>
+				</li>
+				
+				
+												
+							
+								
+								<li>
+									<a class="Mrphs-toolsNav__menuitem--link " href="https://wise.willamette.edu/portal/site/%7Echanks/page/e35c5f83-468e-45f6-adc7-80fe12d5cd67" title="Overview - Display the system message of the day | For displaying information about a user's Home | Show a summary of calendar events in Home | Display recent announcements, updated as messages arrive | For displaying Site information">
+										<span class="Mrphs-toolsNav__menuitem--icon icon-sakai--sakai-motd "></span>
+										<span class="Mrphs-toolsNav__menuitem--title">Overview</span>
+									</a>
+								</li>
+	
+							 	
+						 	
+					 			 	
+													
+							
+								
+								<li>
+									<a class="Mrphs-toolsNav__menuitem--link " href="https://wise.willamette.edu/portal/site/%7Echanks/tool/1bedfc9f-9035-40af-b082-df721f2c6810" title="Profile - Edit your profile, post status updates, search for people with common interests, view their profile and add them as connections">
+										<span class="Mrphs-toolsNav__menuitem--icon icon-sakai--sakai-profile2 "></span>
+										<span class="Mrphs-toolsNav__menuitem--title">Profile</span>
+									</a>
+								</li>
+	
+							 	
+						 	
+					 			 	
+													
+							
+								
+								<li>
+									<a class="Mrphs-toolsNav__menuitem--link " href="https://wise.willamette.edu/portal/site/%7Echanks/tool/3fa15bd4-b5f9-4295-8d4e-4b540cb28793" title="Membership - View and modify your membership in sites you may join">
+										<span class="Mrphs-toolsNav__menuitem--icon icon-sakai--sakai-membership "></span>
+										<span class="Mrphs-toolsNav__menuitem--title">Membership</span>
+									</a>
+								</li>
+	
+							 	
+						 	
+					 			 	
+													
+							
+								
+								<li>
+									<a class="Mrphs-toolsNav__menuitem--link " href="https://wise.willamette.edu/portal/site/%7Echanks/tool/7e9d46f4-4167-4d8b-94be-97d060efbae9" title="Calendar - For posting and viewing deadlines, events, etc.">
+										<span class="Mrphs-toolsNav__menuitem--icon icon-sakai--sakai-schedule "></span>
+										<span class="Mrphs-toolsNav__menuitem--title">Calendar</span>
+									</a>
+								</li>
+	
+							 	
+						 	
+					 			 	
+													
+							
+								
+								<li>
+									<a class="Mrphs-toolsNav__menuitem--link " href="https://wise.willamette.edu/portal/site/%7Echanks/tool/da97953c-164d-4ea6-8422-bafb58012662" title="Resources - For posting documents, URLs to other websites, etc.">
+										<span class="Mrphs-toolsNav__menuitem--icon icon-sakai--sakai-resources "></span>
+										<span class="Mrphs-toolsNav__menuitem--title">Resources</span>
+									</a>
+								</li>
+	
+							 	
+						 	
+					 			 	
+													
+							
+								
+								<li>
+									<a class="Mrphs-toolsNav__menuitem--link " href="https://wise.willamette.edu/portal/site/%7Echanks/tool/55217ca1-3711-4eee-ae10-17a44907b558" title="Announcements - For posting current, time-critical information">
+										<span class="Mrphs-toolsNav__menuitem--icon icon-sakai--sakai-announcements "></span>
+										<span class="Mrphs-toolsNav__menuitem--title">Announcements</span>
+									</a>
+								</li>
+	
+							 	
+						 	
+					 			 	
+													
+						<li class="Mrphs-toolsNav__menuitem is-current">
+							<a class="Mrphs-toolsNav__menuitem--link " href="https://wise.willamette.edu/portal/site/%7Echanks/tool-reset/7d162c73-6750-4b03-937b-5f026f63ee4d" title="Worksite Setup">
+								<span class="Mrphs-toolsNav__menuitem--icon icon-sakai--sakai-sitesetup  icon-active"></span>
+								<span class="Mrphs-toolsNav__menuitem--title">Worksite Setup</span>
+							</a>
+						</li>
+	
+					 			 	
+													
+							
+								
+								<li>
+									<a class="Mrphs-toolsNav__menuitem--link " href="https://wise.willamette.edu/portal/site/%7Echanks/tool/32701b5d-d19a-4e2b-8278-dc4059429804" title="Preferences - Tool to view and modify user's Preferences">
+										<span class="Mrphs-toolsNav__menuitem--icon icon-sakai--sakai-preferences "></span>
+										<span class="Mrphs-toolsNav__menuitem--title">Preferences</span>
+									</a>
+								</li>
+	
+							 	
+						 	
+					 			 	
+													
+							
+								
+								<li>
+									<a class="Mrphs-toolsNav__menuitem--link " href="https://wise.willamette.edu/portal/site/%7Echanks/tool/603ab0d2-2004-4841-ade1-db44c3ad925a" title="Trusted Applications - Tool to allow you to manage applications that can access the service.">
+										<span class="Mrphs-toolsNav__menuitem--icon icon-sakai--sakai-oauth "></span>
+										<span class="Mrphs-toolsNav__menuitem--title">Trusted Applications</span>
+									</a>
+								</li>
+	
+							 	
+						 	
+					 			 	
+													
+							
+								
+								<li>
+									<a class="Mrphs-toolsNav__menuitem--link " href="https://wise.willamette.edu/portal/site/%7Echanks/tool/6be86035-6c93-41d6-9176-c719ad9d85d3" title="Account - View and modify my user profile">
+										<span class="Mrphs-toolsNav__menuitem--icon icon-sakai--sakai-singleuser "></span>
+										<span class="Mrphs-toolsNav__menuitem--title">Account</span>
+									</a>
+								</li>
+	
+							 	
+						 	
+					 			 	
+													
+							
+								
+								<li>
+									<a class="Mrphs-toolsNav__menuitem--link " href="https://wise.willamette.edu/portal/site/%7Echanks/tool/1bc417f6-577f-4fec-8044-32714928cbb6" title="Site Info - For showing worksite information and site participants">
+										<span class="Mrphs-toolsNav__menuitem--icon icon-sakai--sakai-siteinfo "></span>
+										<span class="Mrphs-toolsNav__menuitem--title">Site Info</span>
+									</a>
+								</li>
+	
+							 	
+						 	
+					 			 	
+													
+							
+								
+								<li>
+									<a class="Mrphs-toolsNav__menuitem--link " href="https://wise.willamette.edu/portal/site/%7Echanks/tool/476fc0b5-4e79-45f5-a885-6464cc58752f" title="My Media - My Media tool">
+										<span class="Mrphs-toolsNav__menuitem--icon icon-sakai--kaltura-my-media "></span>
+										<span class="Mrphs-toolsNav__menuitem--title">My Media</span>
+									</a>
+								</li>
+	
+							 	
+						 	
+					 			 	
+													
+							
+								
+								<li>
+									<a class="Mrphs-toolsNav__menuitem--link " href="https://wise.willamette.edu/portal/site/%7Echanks/tool/e58d57d1-5981-4d56-8bb7-efeb23e1fa4b" title="My Media - My Media tool">
+										<span class="Mrphs-toolsNav__menuitem--icon icon-sakai--kaltura-my-media "></span>
+										<span class="Mrphs-toolsNav__menuitem--title">My Media</span>
+									</a>
+								</li>
+	
+							 	
+						 	
+					 			 	
+				 	
+			
+		 	
+				 	
+				 
+					
+					<li class="Mrphs-toolsNav__menuitem--help">
+						<a class="Mrphs-toolsNav__menuitem--link" accesskey="6" href="https://wise.willamette.edu/portal/help/main" target="_blank" onclick="openWindow('https://wise.willamette.edu/portal/help/main', 'Help', 'resizable=yes,toolbar=no,scrollbars=yes,menubar=yes,width=1024,height=768'); return false" title="Help">
+							<span  class="Mrphs-toolsNav__menuitem--icon icon-sakai--help"> </span>
+							<span class="Mrphs-toolsNav__menuitem--title">Help</span>
+							<span class="skip">Opens in a new window</span>
+						</a>
+					</li>
+	
+				 	
+			</ul>
+		</nav>
+	
+		 	</div>
+
+	</div>
+
+<!-- END VM includePageNav.vm -->
+
+     
+    <div class="Mrphs-pagebody">
+        <nav class="Mrphs-siteHierarchy">
+         
+                            <span class="Mrphs-hierarchy--siteName" title="Home">
+                <a href="https://wise.willamette.edu/portal/site/%7Echanks/page-reset/e35c5f83-468e-45f6-adc7-80fe12d5cd67">
+                                            <i class='fa fa-home' aria-hidden="true"></i>
+                                        <span class="Mrphs-hierarchy--siteName-label">
+                        Home
+                    </span>
+                </a>
+            </span>
+            <span class="Mrphs-hierarchy--siteNameSeparator Mrphs-hierarchy--separator"><i class="fa fa-lg fa-angle-right" aria-hidden="true"></i></span>
+                                                                                                                                                            
+    
+                                                                                                <a href="https://wise.willamette.edu/portal/site/%7Echanks/tool-reset/7d162c73-6750-4b03-937b-5f026f63ee4d" title="Tool Home" class="Mrphs-hierarchy-item Mrphs-hierarchy--toolName">
+                <span class="Mrphs-breadcrumb--reset-icon fa fa-share" aria-hidden="true"></span>
+                <span class="Mrphs-breadcrumb--icon icon-sakai--sakai-sitesetup "></span>
+                <span>Worksite Setup</span>
+            </a>
+                                                                                    </nav>
+
+        
+
+    
+
+ 
+<!-- START VM includePageBody.vm -->
+
+<h1 class="skip" tabindex="-1" id="tocontent">Content begins here</h1>
+
+        
+    <main id="content" class="Mrphs-mainContent " role="main">
+
+        
+ 
+        <div id="col1" class="Mrphs-pageColumns Mrphs-pageColumns--single">
+
+            
+                
+                                    
+                    <!-- start Tool Container -->
+                    
+                    
+                    <div class="Mrphs-container Mrphs-sakai-sitesetup">
+                    
+                    <!-- start Tool Header -->
+
+                    
+                        
+
+                            <nav class="Mrphs-toolTitleNav Mrphs-container--toolTitleNav">
+
+                                
+                                    
+                                        <h2 class="Mrphs-toolTitleNav__title">
+                                            <a href="https://wise.willamette.edu/portal/site/%7E5ee36c5c-56db-4e89-bfbd-959bcfe61336/tool-reset/7d162c73-6750-4b03-937b-5f026f63ee4d" title="Tool Home: Worksite Setup">
+                                                <span class="Mrphs-toolTitleNav__link Mrphs-toolTitleNav__link--reset"></span>
+                                                <span class="Mrphs-toolTitleNav__text">Worksite Setup</span>
+                                            </a>
+					    <span class="Mrphs-toolTitleNav__addLeft"></span>
+                                        </h2>
+
+                                     
+                                 
+                                <div class="Mrphs-toolTitleNav__button_container">
+                                
+                                 
+				                <span class="Mrphs-toolTitleNav__addRight"></span>
+                                
+                                    <button class="Mrphs-toolTitleNav__link Mrphs-toolTitleNav__link--directurl" rel="#Main7d162c73x6750x4b03x937bx5f026f63ee4d_directurl" title="Direct link to this tool" aria-haspopup="dialog">
+                                        <span class="Mrphs-itemTitle">Link</span>
+                                    </button>
+                                    <div id="Main7d162c73x6750x4b03x937bx5f026f63ee4d_directurl" role="dialog" aria-labelledby="Main7d162c73x6750x4b03x937bx5f026f63ee4d_directurl__title" class="Mrphs-directUrl Mrphs-directUrl__dropDown">
+                                        <i class="fa fa-times dropDown_close" aria-hidden="true" tabindex="0"></i>
+                                        <label for="Main7d162c73x6750x4b03x937bx5f026f63ee4d_urlholder" id="Main7d162c73x6750x4b03x937bx5f026f63ee4d_directurl__title" class="dropDown_title">Direct link to this tool</label>
+                                        
+                                            <input tabindex="0" type="checkbox" id="directToolUrl-1" onclick="toggleShortUrlOutput('https://wise.willamette.edu/portal/directtool/7d162c73-6750-4b03-937b-5f026f63ee4d/', this, 'Main7d162c73x6750x4b03x937bx5f026f63ee4d_urlholder');" class="Mrphs-directUrl__checkbox"><label for="directToolUrl-1">Short URL</label>
+
+                                         
+                                        <textarea name="Main7d162c73x6750x4b03x937bx5f026f63ee4d_urlholder" id="Main7d162c73x6750x4b03x937bx5f026f63ee4d_urlholder" tabindex="0" class="Mrphs-directUrl__textarea Main7d162c73x6750x4b03x937bx5f026f63ee4d_urlholder" >https://wise.willamette.edu/portal/directtool/7d162c73-6750-4b03-937b-5f026f63ee4d/</textarea>
+                                    </div>
+
+                                 
+                                
+                                    
+                                        <a class="Mrphs-toolTitleNav__link Mrphs-toolTitleNav__link--help-popup" href="https://wise.willamette.edu/portal/help/main?help=sakai.sitesetup" title="Help for Worksite Setup" target="_blank" onclick="openWindow('https://wise.willamette.edu/portal/help/main?help=sakai.sitesetup', 'Help', 'resizable=yes,toolbar=no,scrollbars=yes,menubar=yes,width=1024,height=768'); return false">
+                                            <span class="Mrphs-itemTitle">Help</span>
+                                            <span class="skip">Opens in a new window</span>
+                                        </a>
+
+                                     
+                                 
+                                </div>
+
+                            </nav> 
+                         
+                     
+                    <!-- END Tool Header -->
+
+                    <!-- START Tool Body -->
+
+                    
+                        <!-- Buffered Body Tool Content -->
+                        
+<div id="dialog"></div>
+<script type="text/javascript">
+    $(document).ready(function(){
+		sakai.getSiteInfo('getSiteDesc','dialog','No short description provided','No long description provided');
+		sakai.setupSelectList('siteList','toggleAllSelected','selectedSelected');
+                setupRecentSite();
+		$('.siteSelectCheckbox, #toggleAllSelected').click(function(){
+			if($('.siteSelectCheckbox:checked').length >= 1){
+				$('.actionsContainer .actionButton').prop( 'disabled', false );
+			}
+			else{
+				$('.actionsContainer .actionButton').prop( 'disabled', true );
+			}
+		})
+    });
+</script>
+<div class ="portletBody container-fluid">
+	<ul id="actionToolBar" class="navIntraTool actionToolBar">
+			</ul>
+
+	<div class="navIntraToolLink viewNav">
+			</div>
+		<div class="navPanel row">
+		<div class="viewNav col-sm-7">
+			<form name="viewForm" class="inlineForm" method="post" action="https://wise.willamette.edu/portal/site/~chanks/tool/7d162c73-6750-4b03-937b-5f026f63ee4d">
+				<div class="form-group row">
+					<input type="hidden" name="eventSubmit_doView_sites" value="view" />
+					<label for="view" class="col-sm-3">View:</label>
+					<div class="col-sm-5">
+						<select id="view" name="view" size="1">
+															<option value ="course"
+																> course Sites </option>
+															<option value ="project"
+																> project Sites </option>
+															<option value ="site_type_all"
+								 selected="selected" 								> All My Sites </option>
+															<option value ="site_type_deleted"
+																> Softly Deleted Sites </option>
+															<option value ="site_type_myworkspace"
+																> Home Sites </option>
+													</select>
+					</div>
+				</div>
+				<div class="form-group row"> 					
+											<label for="termview" class="col-sm-3">Filter by Term:</label>
+						<div class="col-sm-5">
+							<select id="termview" name="termview" size="1">
+																	<option value ="-1"
+									 selected="selected" 									> None </option>
+																	<option value ="Fall 2008"
+																		> Fall 2008 </option>
+																	<option value ="Fall 2009"
+																		> Fall 2009 </option>
+																	<option value ="Fall 2010"
+																		> Fall 2010 </option>
+																	<option value ="Spring 2009"
+																		> Spring 2009 </option>
+																	<option value ="Spring 2010"
+																		> Spring 2010 </option>
+																	<option value ="Summer 2009"
+																		> Summer 2009 </option>
+																	<option value ="Summer 2010"
+																		> Summer 2010 </option>
+															</select>
+						</div>						
+									</div>
+				<input type="hidden" name="sakai_csrf_token" value="1af06c8ef233d4b28aaa49a4209a367ab7a205d772bf1be0aa50774d34c2bff2" />
+				<input type="submit" class="button" value="Submit" />
+			</form>
+		</div>
+		<div class="searchNav col-sm-5" style="text-align: right">
+											<form name="searchForm" class="inlineForm" action="https://wise.willamette.edu/portal/site/~chanks/tool/7d162c73-6750-4b03-937b-5f026f63ee4d" method="post">
+					<input type="hidden" name="eventSubmit_doSite_search" value="null" />
+					<label for="search" class="skip">Search</label>
+					<input size="20"  value="" name="search" id="search" type="text" class="searchField"  />
+					<input type="button" value="Search" onclick="SPNR.disableControlsAndSpin( this, null );location='https://wise.willamette.edu/portal/site/~chanks/tool/7d162c73-6750-4b03-937b-5f026f63ee4d?sakai_action=doSite_search'+buildQueryString('searchForm');return false;" />
+					
+										<input type="hidden" name="sakai_csrf_token" value="1af06c8ef233d4b28aaa49a4209a367ab7a205d772bf1be0aa50774d34c2bff2" />
+				</form>
+					</div>
+	</div>	
+	<div class="navPanel">
+														<div class ="viewNav">
+						
+						<br /><span class="instruction">Check a box and use the buttons above or below to take action on a site. Click column headers to sort the table.</span>
+
+						<div class="actionsContainer">
+							<input type="button" id="btnEdit1" name="btnEdit1" class="actionButton" value="Edit" disabled="disabled" 
+								onclick="SPNR.disableControlsAndSpin( this, null );document.getElementById('sakai_action').value='doGet_site';document.getElementById('sitesForm').submit();return false;" />
+							<input type="button" id="btnSoftDelete1" name="btnSoftDelete1" class="actionButton" value="Delete" disabled="disabled" 
+								onclick="SPNR.disableControlsAndSpin( this, null );document.getElementById('sakai_action').value='doMenu_site_delete';document.getElementById('sitesForm').submit();return false;" />
+																				</div>
+
+					</div>
+								<div class="listNav">
+					<div>
+						Viewing 1 - 6 of 6 items
+						<div id="pagerSpinner" class="allocatedSpinPlaceholder"></div>
+					</div>
+																		<form name="prevpageForm" class="inlineForm" method="post" action="https://wise.willamette.edu/portal/site/~chanks/tool/7d162c73-6750-4b03-937b-5f026f63ee4d">
+								<fieldset><legend>Previous 20 items</legend>
+									<input type="submit" disabled="disabled" name="eventSubmit_doList_prev" value="&lt;" />
+								</fieldset>
+							</form>
+																<form name="pagesizeForm"  class="inlineForm" method="post" action="https://wise.willamette.edu/portal/site/~chanks/tool/7d162c73-6750-4b03-937b-5f026f63ee4d">
+						<input type="hidden" name="eventSubmit_doChange_pagesize" value="changepagesize" />
+							<label for="selectPageSize" class="skip">Choose page size</label>
+						<select name="selectPageSize" id="selectPageSize" onchange="SPNR.insertSpinnerInPreallocated( this, null, 'pagerSpinner' );document.pagesizeForm.submit();">
+															<option value="5" >show 5 items per page</option>
+															<option value="10" >show 10 items per page</option>
+															<option value="20"  selected="selected" >show 20 items per page</option>
+															<option value="50" >show 50 items per page</option>
+															<option value="100" >show 100 items per page</option>
+															<option value="200" >show 200 items per page</option>
+													</select>
+						<input type="hidden" name="sakai_csrf_token" value="1af06c8ef233d4b28aaa49a4209a367ab7a205d772bf1be0aa50774d34c2bff2" />
+					</form>
+																		<form name="nextpageForm" class="inlineForm"  method="post" action="https://wise.willamette.edu/portal/site/~chanks/tool/7d162c73-6750-4b03-937b-5f026f63ee4d">
+								<fieldset><legend>Next 20 items</legend>
+								<input type="submit" disabled="disabled" name="eventSubmit_doList_next" value="&gt;" />
+								</fieldset>
+							</form>
+															</div>
+					</div>	
+		<form id="sitesForm" name="sitesForm" action="https://wise.willamette.edu/portal/site/~chanks/tool/7d162c73-6750-4b03-937b-5f026f63ee4d" method="post">
+		<input type="hidden" name="sakai_action" id="sakai_action" value="" />
+					<div class="table-responsive">
+			<table class ="table table-striped table-hover table-bordered" summary ="List of sites you have access to." id ="siteList" >
+				<tr>
+					<th id="checkbox" class="screenOnly attach" scope="col">
+						<input type="checkbox" name="toggleAllSelected" value="" id="toggleAllSelected"  title="Select/unselect all worksites" />
+					</th>
+					<th id="title" scope="col">
+						<a href="https://wise.willamette.edu/portal/site/~chanks/tool/7d162c73-6750-4b03-937b-5f026f63ee4d?criterion=title&amp;sakai_action=doSort_sites" title ="Sort by title"> 
+							Worksite Title
+																								<img src = "/library/image/sakai/sortascending.gif" border="0" title ="Sort by title ascending" alt ="Sort by title ascending" /> 
+																					</a>
+					</th>
+										<th id="type" scope="col">
+						<a href="https://wise.willamette.edu/portal/site/~chanks/tool/7d162c73-6750-4b03-937b-5f026f63ee4d?criterion=type&amp;sakai_action=doSort_sites" title ="Sort by type"> 
+							Type
+													</a>
+					</th>					
+					<th id="createdBy" scope="col">
+						<a href="https://wise.willamette.edu/portal/site/~chanks/tool/7d162c73-6750-4b03-937b-5f026f63ee4d?criterion=created%20by&amp;sakai_action=doSort_sites" title ="Sort by creator"> 
+							Creator
+													</a>
+					</th>
+					<th id="term" scope="col">
+							Term
+					</th>
+					<th id="published" scope="col">
+						<a href="https://wise.willamette.edu/portal/site/~chanks/tool/7d162c73-6750-4b03-937b-5f026f63ee4d?criterion=published&amp;sakai_action=doSort_sites" title ="Sort by status"> 
+							Status
+													</a>
+					</th>
+					<th id="createdOn" scope="col">
+						<a href="https://wise.willamette.edu/portal/site/~chanks/tool/7d162c73-6750-4b03-937b-5f026f63ee4d?criterion=created%20on&amp;sakai_action=doSort_sites" title ="Sort by creation date"> 
+							Creation Date
+													</a>
+					</th>
+				</tr>
+									
+													<tr>
+													<td headers="checkbox" class="screenOnly attach">
+																	<input type="checkbox" name="selectedMembers" value="~5ee36c5c-56db-4e89-bfbd-959bcfe61336" id="site1"  class="siteSelectCheckbox"  />
+									<label class="skip" for="site1">Select Home</label>
+															</td>
+							<td headers="title">
+																	<a href="https://wise.willamette.edu/portal/site/~5ee36c5c-56db-4e89-bfbd-959bcfe61336" target="_top">
+									Home
+									</a>
+																<a href="#"  id="~5ee36c5c-56db-4e89-bfbd-959bcfe61336" class="getSiteDesc" title="More information on this site">
+                                	<img src="/library/image/sakai/information_gray.png" border="0" title ="More information on this site" alt ="More information on this site" />
+								</a>
+							</td>
+														<td headers="type">
+																
+							</td>
+							<td headers="createdBy">
+																	chanks
+															</td>
+							<td headers="term">
+																	
+															</td>
+							<td headers="published">
+																	Published
+															</td>
+							<td headers="createdOn">
+																Aug 30, 2022 9:47 am
+							</td>
+						</tr>
+					
+													<tr>
+													<td headers="checkbox" class="screenOnly attach">
+															</td>
+							<td headers="title">
+																	<a href="https://wise.willamette.edu/portal/site/DATA-501-01-22_FA" target="_top">
+									DATA-501-01-22/FA
+									</a>
+																<a href="#"  id="DATA-501-01-22_FA" class="getSiteDesc" title="More information on this site">
+                                	<img src="/library/image/sakai/information_gray.png" border="0" title ="More information on this site" alt ="More information on this site" />
+								</a>
+							</td>
+														<td headers="type">
+																course
+							</td>
+							<td headers="createdBy">
+																	api-user
+															</td>
+							<td headers="term">
+																	22/FA
+															</td>
+							<td headers="published">
+																	Published
+															</td>
+							<td headers="createdOn">
+																May 31, 2022 4:58 am
+							</td>
+						</tr>
+					
+													<tr>
+													<td headers="checkbox" class="screenOnly attach">
+															</td>
+							<td headers="title">
+																	<a href="https://wise.willamette.edu/portal/site/DATA-502-01-22_FA" target="_top">
+									DATA-502-01-22/FA
+									</a>
+																<a href="#"  id="DATA-502-01-22_FA" class="getSiteDesc" title="More information on this site">
+                                	<img src="/library/image/sakai/information_gray.png" border="0" title ="More information on this site" alt ="More information on this site" />
+								</a>
+							</td>
+														<td headers="type">
+																course
+							</td>
+							<td headers="createdBy">
+																	api-user
+															</td>
+							<td headers="term">
+																	22/FA
+															</td>
+							<td headers="published">
+																	Published
+															</td>
+							<td headers="createdOn">
+																May 31, 2022 4:58 am
+							</td>
+						</tr>
+					
+													<tr>
+													<td headers="checkbox" class="screenOnly attach">
+															</td>
+							<td headers="title">
+																	<a href="https://wise.willamette.edu/portal/site/DATA-503-01-22_FA" target="_top">
+									DATA-503-01-22/FA
+									</a>
+																<a href="#"  id="DATA-503-01-22_FA" class="getSiteDesc" title="More information on this site">
+                                	<img src="/library/image/sakai/information_gray.png" border="0" title ="More information on this site" alt ="More information on this site" />
+								</a>
+							</td>
+														<td headers="type">
+																course
+							</td>
+							<td headers="createdBy">
+																	api-user
+															</td>
+							<td headers="term">
+																	22/FA
+															</td>
+							<td headers="published">
+																	Published
+															</td>
+							<td headers="createdOn">
+																May 31, 2022 4:58 am
+							</td>
+						</tr>
+					
+													<tr>
+													<td headers="checkbox" class="screenOnly attach">
+															</td>
+							<td headers="title">
+																	<a href="https://wise.willamette.edu/portal/site/DATA-505-01-23_SP" target="_top">
+									DATA-505-01-23/SP
+									</a>
+																<a href="#"  id="DATA-505-01-23_SP" class="getSiteDesc" title="More information on this site">
+                                	<img src="/library/image/sakai/information_gray.png" border="0" title ="More information on this site" alt ="More information on this site" />
+								</a>
+							</td>
+														<td headers="type">
+																course
+							</td>
+							<td headers="createdBy">
+																	api-user
+															</td>
+							<td headers="term">
+																	23/SP
+															</td>
+							<td headers="published">
+																	Published
+															</td>
+							<td headers="createdOn">
+																Oct 19, 2022 4:50 am
+							</td>
+						</tr>
+					
+													<tr>
+													<td headers="checkbox" class="screenOnly attach">
+															</td>
+							<td headers="title">
+																	<a href="https://wise.willamette.edu/portal/site/DATA-599-02-23_SP" target="_top">
+									DATA-599-02-23/SP
+									</a>
+																<a href="#"  id="DATA-599-02-23_SP" class="getSiteDesc" title="More information on this site">
+                                	<img src="/library/image/sakai/information_gray.png" border="0" title ="More information on this site" alt ="More information on this site" />
+								</a>
+							</td>
+														<td headers="type">
+																course
+							</td>
+							<td headers="createdBy">
+																	api-user
+															</td>
+							<td headers="term">
+																	23/SP
+															</td>
+							<td headers="published">
+																	Published
+															</td>
+							<td headers="createdOn">
+																Oct 19, 2022 4:50 am
+							</td>
+						</tr>
+												</table></div>
+			<div class="actionsContainer">
+				<input type="button" id="btnEdit2" name="btnEdit2" class="actionButton" value="Edit" disabled="disabled" 
+					onclick="SPNR.disableControlsAndSpin( this, null );document.getElementById('sakai_action').value='doGet_site';document.getElementById('sitesForm').submit();return false;" />
+				<input type="button" id="btnSoftDelete2" name="btnSoftDelete2" class="actionButton" value="Delete" disabled="disabled" 
+					onclick="SPNR.disableControlsAndSpin( this, null );document.getElementById('sakai_action').value='doMenu_site_delete';document.getElementById('sitesForm').submit();return false;" />
+											</div>
+			<input type="hidden" name="sakai_csrf_token" value="1af06c8ef233d4b28aaa49a4209a367ab7a205d772bf1be0aa50774d34c2bff2" />
+				</form>
+</div>
+		
+
+                        <!-- End Buffered Body Tool Content -->
+
+                     
+                    <!-- end Tool Body -->
+                    
+                    </div>
+
+                    <!-- end Tool Container -->
+
+                 
+             
+        </div>
+
+         
+    </main> <!-- END of main.Mrphs-mainContent -->
+
+<!-- END VM includePageBody.vm -->        
+        <div class="Mrphs-container Mrphs-container--footer">
+
+    
+        <footer id="footer" role="contentinfo" class="Mrphs-footer">
+
+            <ul id="footer-links" class="Mrphs-footer--nav Mrphs-footer--nav__main">
+
+                
+                    <li>
+                        <span><a href="/portal/site/!gateway">Gateway</a></span>
+                    </li>
+
+                
+                    <li>
+                        <span><a href="/portal/help/TOCDisplay/content.hlp?docId=accessibilityinformation" target="_blank">Accessibility Information</a></span>
+                    </li>
+
+                
+                    <li>
+                        <span><a href="http://www.sakaiproject.org/" target="_blank">The Sakai Project</a></span>
+                    </li>
+
+                 
+            </ul>
+
+            <ul class="Mrphs-footer--nav Mrphs-footer--nav__project">
+                <li id="Mrphs-footer--nav__project--sakai">
+
+                    
+                        <a href="http://sakaiproject.org" target="_blank" class="external__link"><span class="Mrphs-footer--nav__project--poweredby">Powered by Sakai</span><span class="skip external">(Opens in a new window)</span>
+                        </a>
+
+                     
+                </li>
+                <li class="Mrphs-footer--nav__project--copyright">Copyright 2003-2023 The Apereo Foundation. All rights reserved. Portions of Sakai are copyrighted by other parties as described in the Acknowledgments screen.</li>
+            </ul>
+
+            <details class="Mrphs-footer--details Mrphs-footer--details__build-info">
+                <summary>Build Info:</summary>
+                <p class="Mrphs-footer--nav__build__panel">WISE - ee66a9f9 - Sakai 12-SNAPSHOT - Server wise-tc-3.willamette.edu</p>
+            </details>
+
+            
+                <details class="Mrphs-footer--details Mrphs-footer--details__server-time" aria-live="off">
+                <summary>Server Time:</summary>
+
+                    
+                    <span id="serverTime" class="Mrphs-footer--server-time" data-servertzdisplay="PST" data-serverdateandgmtoffset="1674137783448"></span>
+                </details>
+
+             
+        </footer>
+        
+        <div class="Mrphs-container Mrphs-container--extras">
+
+        
+    <div id="Mrphs-footerApp">
+
+        
+             
+         
+    </div>
+
+ 
+ 
+ 
+        </div>         <div id="tutorial" class="Mrphs-tutorial Mrphs-modal"></div>
+        <div id="social-alerts" class="Mrphs-tutorial Mrphs-modal"></div>
+
+     
+</div>
+
+    </div>
+    
+    </div>
+    
+
+</div>
+
+    
+<!-- END VM includePageWithNav.vm -->
+
+        </div> <!-- end Mrphs-portalWrapper -->
+        <!-- END VM site.vm -->
+
+        <!-- Viewport helpers -->
+        <div id='Mrphs-viewport-helpers' aria-hidden='true'>
+          <div class='phone'></div>
+          <div class='tablet'></div>
+          <div class='desktop'></div>
+        </div>
+
+            <script>
+        var needJQuery = true;
+        var secondJQuery = false;
+        var notJQuery = false;
+        var dollarEmpty = false;
+        var dollarVersion = false;
+        if ( window.$ ) {
+              if ( window.$.fn && window.$.fn ) {
+                 dollarVersion = window.$.fn.jquery;
+              } else {
+                 dollarVersion = 'not jQuery';
+                 window.console && console.log('Dollar is defined but is not jQuery');
+                 window.console && console.log($);
+                 //Just have it reload this other $ afterward
+                 notJQuery = true;
+              }
+         } else {
+              dollarEmpty = true;
+              dollarVersion = 'not present';
+              if ( window.jQuery ) {
+                  window.console && console.log('tool called jQuery.noConflict()');
+              }
+        }
+        if ( window.jQuery ) {
+            tver = jQuery.fn.jquery;
+            if ( tver.indexOf('1.12.') == 0 ) {
+                window.console && console.log('Using tool jQuery '+tver);
+                needJQuery = false;
+            } else {
+                secondJQuery = true;
+            }
+        }
+        if ( needJQuery ) {
+            document.write('\x3Cscript src="/library/webjars//jquery/1.12.4/jquery.min.js?version=ee66a9f9">'+'\x3C/script>')
+            document.write('\x3Cscript src="/library/webjars/jquery-migrate/1.4.1/jquery-migrate.min.js?version=ee66a9f9">'+'\x3C/script>')
+            document.write('\x3Cscript src="/library/webjars/bootstrap/3.3.7/js/bootstrap.min.js?version=ee66a9f9">'+'\x3C/script>')
+            document.write('\x3Cscript src="/library/webjars/jquery-ui/1.12.1/jquery-ui.min.js?version=ee66a9f9">'+'\x3C/script>')
+            document.write('\x3Clink rel="stylesheet" href="/library/webjars/jquery-ui/1.12.1/jquery-ui.min.css?version=ee66a9f9"/>')
+            if (Modernizr.touch) {
+              document.write('\x3Cscript type="text/javascript" src="/library/webjars/jquery-ui-touch-punch/0.2.3/jquery.ui.touch-punch.min.js?version=ee66a9f9">'+'\x3C/script>')
+            }
+            window.console && console.log('Portal scripts loaded JQ+MI+BS+UI');
+        } else {
+            if (typeof jQuery.migrateWarnings == 'undefined') {
+                document.write('\x3Cscript type="text/javascript" src="/library/webjars/jquery-migrate/1.4.1/jquery-migrate.min.js?version=ee66a9f9">'+'\x3C/script>')
+                window.console && console.log('Portal adding jQuery migrate');
+            }
+            if ( typeof jQuery.fn.popover == 'undefined') {
+                document.write('\x3Cscript type="text/javascript" src="/library/webjars/bootstrap/3.3.7/js/bootstrap.min.js?version=ee66a9f9">'+'\x3C/script>')
+                window.console && console.log('Portal adding Bootstrap');
+            }
+            if (typeof jQuery.ui == 'undefined') {
+                document.write('\x3Cscript type="text/javascript" src="/library/webjars/jquery-ui/1.12.1/jquery-ui.min.js?version=ee66a9f9">'+'\x3C/script>')
+		document.write('\x3Clink rel="stylesheet" href="/library/webjars/jquery-ui/1.12.1/jquery-ui.min.css?version=ee66a9f9"/>')
+                window.console && console.log('Portal adding jQuery UI');
+            }
+            if (typeof jQuery.ui == 'undefined' || (typeof jQuery.ui.mouse != 'undefined' && typeof jQuery.ui.mouse.prototype._touchStart == 'undefined')) {
+                document.write('\x3Cscript type="text/javascript" src="/library/webjars/jquery-ui-touch-punch/0.2.3/jquery.ui.touch-punch.min.js?version=ee66a9f9">'+'\x3C/script>')
+                window.console && console.log('Portal adding jQuery UI Touch Punch for touch device support');
+            }
+        }
+    </script>
+    <script>
+        $PBJQ = jQuery; // The Portal's jQuery (also in $ for now)
+    </script>
+
+                    <script src="/portal/scripts/sessionstoragemanager.js?version=ee66a9f9"></script>
+                 
+        <!--[if lt IE 9]>
+            <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7/html5shiv.min.js"></script>
+<![endif]-->
+
+        <script>
+            if (typeof Handlebars == 'undefined') {
+                document.write('\x3Cscript src="/library/webjars/handlebars/4.0.6/handlebars.runtime.min.js?version=ee66a9f9">\x3C/script>');
+            }
+        </script>
+        <script src="/library/templates.js?version=ee66a9f9"></script>
+        <script src="/library/js/trimpath-template-latest.js?version=ee66a9f9"></script>
+        <script src="/library/js/jquery/bgiframe/jquery.bgiframe.min.js?version=ee66a9f9"></script>
+        <script src="/library/js/jquery/cluetip/1.2.10/jquery.cluetip.min.js?version=ee66a9f9"></script>
+        <script>
+            if (typeof jQuery.i18n == 'undefined') {
+                document.write('\x3Cscript src="/library/webjars/jquery-i18n-properties/1.2.2/jquery.i18n.properties.min.js?version=ee66a9f9">\x3C/script>');
+            }
+        </script>
+        <script src="/library/js/jquery/jquery.clearsearch.js?version=ee66a9f9"></script>
+        <script src="/library/skin/wise-default/js/morpheus.plugins.min.js?version=ee66a9f9"></script>
+        <script src="/library/skin/wise-default/js/morpheus.scripts.min.js?version=ee66a9f9"></script>
+        <script src="/library/webjars//pnotify/2.1.0/pnotify.core.min.js?version=ee66a9f9"></script>
+	<script src="/library/webjars//pnotify/2.1.0/pnotify.buttons.min.js?version=ee66a9f9"></script>
+        <script src="/library/js/jquery/qtip/jquery.qtip-latest.min.js?version=ee66a9f9"></script>
+        <script src="/library/js/jquery/qtip/tutorial.js?version=ee66a9f9"></script>
+        <script src="/library/webjars/cropper/2.3.2/dist/cropper.min.js?version=ee66a9f9"></script>
+
+         
+        
+ 
+         
+                    <script>
+                var sakaiPortalWindow = "";
+                $PBJQ(document).ready(function() {
+                    setupSkipNav();
+                });
+            </script>
+         
+        <script>
+            // If we loaded a second jQuery, revert $ and jQuery to the first jQuery
+            if ( secondJQuery ) {
+                $PBJQ = jQuery.noConflict(true); // Safely return $ to the tool jQuery
+                if ( ! dollarEmpty && !notJQuery ) jQuery = $;  // Return jQuery to point at the tool jQuery
+            }
+            if (notJQuery && !secondJQuery) {
+                $PBJQ = jQuery.noConflict(true); // Safely return $ to the tool jQuery
+                //Just set jQuery to be the same thing since it didn't exist before
+                jQuery = $PBJQ;
+
+            }
+            window.console && console.log('Portal script load complete PBJQ='+$PBJQ.fn.jquery+' jQuery='+jQuery.fn.jquery+' $='+dollarVersion);
+
+            $PBJQ(document).ready(function() {
+                setupSiteNav();
+                            });
+        </script>
+
+        <script>
+        PNotify.prototype.options.styling = "jqueryui";
+        function portal_check_pnotify() {
+            $PBJQ.getJSON( "/direct/portal/notify.json", function( data ) {
+                for(i=0; i<data.error.length; i++ ) {
+                     $PBJQ(function(){
+                        new PNotify({
+                            title: 'Notice',
+                            text: data.error[i],
+                            type: 'notice'
+                        });
+                    });
+                }
+            });
+        }
+            </script>
+
+        <!--[if lt IE 9]>
+        <script src="/library/skin/wise-default/js/ie/sakai.portal.ie.js?version=ee66a9f9"></script>
+<![endif]-->
+
+        <script src="/library/js/caps-lock-checker.js?version=ee66a9f9"></script>
+
+         
+         <link href="/pasystem-tool/stylesheets/pasystem.css?version&#x3D;ee66a9f9" rel="stylesheet" property="stylesheet" type="text/css" />
+
+<script>
+// Work around the fact that several pages pull in very old versions
+// of JQuery.
+function paSystemJQueryOK() {
+    if (!window.jQuery) {
+        /* no jQuery at all */
+        return false;
+    }
+
+    var version_numbers = jQuery.fn.jquery.split('.');
+
+    /* >= 1.9+ */
+    return (parseInt(version_numbers[0]) > 1) || (parseInt(version_numbers[0]) == 1 && parseInt(version_numbers[1]) >= 9);
+}
+
+if (paSystemJQueryOK()) {
+  document.write('\x3Cscript src="/pasystem-tool/scripts/pasystem.js?version&#x3D;ee66a9f9">\x3C/script>');
+  document.write('\x3Cscript type="text/javascript" src="/pasystem-tool/scripts/featherlight.min.js?version&#x3D;ee66a9f9">\x3C/script>');
+
+  var pasystem = pasystem || {'loaded': true};
+} else {
+  console.log("PASystem not loaded for this page because jQuery is missing or unsupported.");
+}
+</script>
+<script id="pasystemBannerAlertsTemplate" type="text/template">
+  <div class="pasystem-banner-alert pasystem-banner-${type}" id="${id}">
+    <span class="pasystem-banner-alert-message">${message}</span>
+    {if dismissible}<a class="pasystem-banner-alert-close" href="javascript:void(0)"></a>{/if}
+  </div>
+</script>
+<script id="pasystemBannerAlertsToggleTemplate" type="text/template">
+  <li class="pasystem-banner-alert-toggle-list-item">
+    <a href="javscript:void(0)" class="pasystem-banner-alert-toggle">
+      Show System Alerts
+    </a>
+  </li>
+</script>
+<script>
+  if (pasystem) {
+    pasystem['banners'] = new PASystemBannerAlerts([], "1af06c8ef233d4b28aaa49a4209a367ab7a205d772bf1be0aa50774d34c2bff2");
+  }
+</script>
+<script type="text/template" id="popup-container-content">
+
+</script>
+
+<script type="text/template" id="popup-container-footer">
+<div class="popup-container-footer">
+  <a href="javascript:void(0)" class="popup-dismiss-button permanent" id="popup-acknowledged-button">Don't show this again</a>
+  <a href="javascript:void(0)" class="popup-dismiss-button temporary" id="popup-later-button">Remind me later</a>
+</div>
+</script>
+
+
+<script id="timezoneBannerTemplate" type="text/template">
+  <span>
+    Your computer's time zone <span class="computerTimezone">${reportedTimezone}</span> does not match your account's time zone of <span class="prefsTimezone">${prefsTimezone}</span>. <span class="pasystem-tz-click-here"><a href="${setTimezoneUrl}" id="setTimezoneMsg">Click here to update your time zone preferences</a></span>.
+  </span>
+</script>
+
+<script>
+  if (pasystem) {
+    new PASystemTimezoneChecker().checkTimezone();
+  }
+</script>
+
+
+        <!-- START VM includeCookieNotice.vm -->
+<!-- END VM includeCookieNotice.vm -->
+
+         
+        <script type="text/javascript" language="JavaScript" src="/media-gallery-tool/js/kaltura-upgrade.js"></script>
+
+                <!-- Modal popup for profile picture changer -->
+        <div class="modal fade" id="profileImageUpload" tabindex="-1" role="dialog">
+            <div class="modal-dialog" role="document">
+                <div class="modal-content">
+                    <div class="modal-header"><h2>Change Profile Picture</h2></div>
+                    <div class="modal-body">
+                        <div id="remove-error" class="alert alert-danger">Error removing image</div>
+                        <div id="upload-error" class="alert alert-danger">Error uploading image</div>
+                        <label for="file">Upload</label>
+                        <input type="file" id="file" value="Choose a file" accept="image/*" aria-required="true">
+                        <div id="cropme">
+                            <img style="maxWidth: 100%" />
+                        </div>
+                        <div id="cropToolbar" class="btn-toolbar" style="display: none;">
+                            <div class="btn-group">
+                                <a class="profile-image-zoom-in btn btn-sm btn-default" href="javascript:void(0)"></a>
+                                <a class="profile-image-zoom-out btn btn-sm btn-default" href="javascript:void(0)"></a>
+                            </div>
+                            <div class="btn-group">
+                                <a class="profile-image-pan-up btn btn-sm btn-default" href="javascript:void(0)"></a>
+                                <a class="profile-image-pan-down btn btn-sm btn-default" href="javascript:void(0)"></a>
+                                <a class="profile-image-pan-left btn btn-sm btn-default" href="javascript:void(0)"></a>
+                                <a class="profile-image-pan-right btn btn-sm btn-default" href="javascript:void(0)"></a>
+                            </div>
+                            <div class="btn-group">
+                                <a class="profile-image-rotate btn btn-sm btn-default" href="javascript:void(0)"></a>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="button_color pull-left" id="save" disabled="disabled">Save</button>
+                        <button type="button" class="button pull-left" data-dismiss="modal">Cancel</button>
+                        <button class="btn btn-link remove-profile-image pull-right">Remove</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+                <!-- Social connection manager modal-->
+        <div class="modal fade" id="connection-manager" tabindex="-1" role="dialog">
+            <div class="modal-dialog modal-lg" role="document">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <span id="connection-manager-title">Connections</span>
+                        <button id="connection-manager-close-button" class="close" title="Close" aria-label="Close" data-dismiss="modal"><span id="connection-manager-close-icon" aria-hidden="true" class="fa fa-times"></span></button>
+                    </div>
+                    <div class="modal-body">
+                        <div id="connection-manager-connectionsview">
+                            <div id="connection-manager-connectionsview-topbar">
+                                <div id="connection-manager-connectionsview-searchbox-wrapper">
+                                    <input type="text" id="connection-manager-connectionsview-searchbox" class="connection-manager-searchbox" placeholder="Search for people ..."/>
+                                    <div id="connection-manager-connectionsview-searchresults-wrapper">
+                                        <div id="connection-manager-connectionsview-searchresults"></div>
+                                        <div id="connection-manager-connectionsview-searchresults-more"><a id="connection-manager-view-more-link" href="javascript:;">View More</a></div>
+                                    </div>
+                                </div>
+                                <ul id="connection-manager-navbar" class="navIntraTool actionToolBar" role="menu">
+                                    <li id="connection-manager-navbar-current" role="menuitem"><span class="firstToolBarItem current"><a href="javascript:;">My Connections</a></span></li>
+                                    <li id="connection-manager-navbar-pending" role="menuitem"><span><a href="javascript:;">Pending Connections</a></span></li>
+                                </ul>
+                            </div>
+                            <div id="connection-manager-current-connections-wrapper" class="connection-manager-connections-wrapper">
+                                <div id="connection-manager-current-connections" class="connection-manager-connections">
+                                </div>
+                                <div id="connection-manager-no-current-connections-wrapper" class="connection-manager-no-connections-wrapper">
+                                    <div id="connection-manager-no-current-connections" class="connection-manager-no-connections">
+                                        <div id="connection-manager-no-current-connections-image" class="connection-manager-no-connections-image"></div>
+                                        <div id="connection-manager-no-current-connections-text" class="connection-manager-no-connections-text">You don't have any connnections yet. Search for people above to get started.</div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div id="connection-manager-pending-connections-wrapper" class="connection-manager-connections-wrapper">
+                                <div id="connection-manager-pending-connections" class="connection-manager-connections">
+                                </div>
+                                <div id="connection-manager-no-pending-connections-wrapper" class="connection-manager-no-connections-wrapper">
+                                    <div id="connection-manager-no-pending-connections" class="connection-manager-no-connections">
+                                        <div id="connection-manager-no-pending-connections-image" class="connection-manager-no-connections-image"></div>
+                                        <div id="connection-manager-no-pending-connections-text" class="connection-manager-no-connections-text">You have no pending connections.</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div id="connection-manager-searchresultsview">
+                            <div id="connection-manager-searchresultsview-topbar">
+                                <div id="connection-manager-searchresultsview-backlinkwrapper">
+                                    <span class="fa fa-long-arrow-left"></span><a href="javascript:;" id="connection-manager-backtoconnections-link">Back to My Connections</a>
+                                </div>
+                                <input type="text" id="connection-manager-searchresultsview-searchbox" class="connection-manager-searchbox" placeholder="Search for people ..."/>
+                            </div>
+                            <div id="connection-manager-searchresultsview-content">
+                                <div id="connection-manager-searchresultsview-count">$({cmLoader.getString("connection_manager_no_results")}</div>
+                                <div id="connection-manager-searchresultsview-results"></div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="button pull-right" data-dismiss="modal">Done</button>
+                    </div>
+                </div>
+            </div>
+        </div> <!-- Social connection manager modal -->
+        
+    </body>
+</html>
