@@ -27,6 +27,7 @@ library(caret)
 library(naivebayes)
 library(tidytext)
 wine = read_rds("pinot.rds")
+names(wine)[names(wine) == 'id'] = 'ID'
 
 ```
 
@@ -51,7 +52,7 @@ ungroup %>%
 group_by(word) %>%
 mutate(total = sum(n))
 
-num_fruit = df %>% filter(word == "fruit") %>% group_by(id) %>% nrow() 
+num_fruit = df %>% filter(word == "fruit") %>% group_by(ID) %>% nrow() 
 
 #3724 wines have fruit in description
 
@@ -75,7 +76,7 @@ unnest_tokens(word, description) %>%
 anti_join(stop_words) %>% 
 filter(word != "wine") %>%
 filter(word != "pinot") %>%
-count(id, word)
+count(ID, word)
 
 fruit_burg = bp_df %>% filter(word == "fruit")
 #520 burgundy have fruit in the description 
@@ -90,7 +91,7 @@ answer
 
 ```
 
-The probability that a Pinot comes from Burgundy given that it has the word "fruit" in the description is .14. 
+ANSWER: P(Burgundy | Fruit) = .14
 
 
 
@@ -104,60 +105,56 @@ The probability that a Pinot comes from Burgundy given that it has the word "fru
 5. Report Kappa after using your model to predict provinces in the holdout (test) sample.
 
 ```{r}
-ds_nb = wine %>% mutate(acidity = as.integer(str_detect(description, "[Aa]cidity")),
-                       nose = as.integer(str_detect(description, "[Nn]ose")),
-                       palate = as.integer(str_detect(description, "[Pp]alate"))) %>% 
-                select(province, acidity,nose, palate )
+wine2 = wine %>% mutate(lprice = log(price),
+                    fyear = as.factor(year),
+                    oak = as.integer(str_detect(description, "[Oo]ak")),
+                    earth = as.integer(str_detect(description, "[Ee]arth")),
+                    cherry = as.integer(str_detect(description, "[Cc]herry")),
+                    choc = as.integer(str_detect(description, "[Cc]hocolate")),
+                    acidity = as.integer(str_detect(description, "[Aa]cidity")),
+                    nose = as.integer(str_detect(description, "[Nn]ose")),
+                    palate = as.integer(str_detect(description, "[Pp]alate")),
+                    chocolate = as.integer(str_detect(description,"[Cc]hocolate")),
+                    tart = as.integer(str_detect(description,"[Tt]art")),
+                    brisk = as.integer(str_detect(description,"[Bb]risk")),
+                    bramble = as.integer(str_detect(description,"[Bb]ramble")),
+                    aging = as.integer(str_detect(description, "[Aa]ging")),
+                    savory =as.integer(str_detect(description, "[Ss]avory")),
+                    clover = as.integer(str_detect(description, "[Cc]love")),
+                    aromas = as.integer(str_detect(description, "[Aa]romas")),
+                    fruits = as.integer(str_detect(description, "[Ff]ruits")),
+                    nose = as.integer(str_detect(description, "[Nn]ose")),
+                    points_greater_95 = points >=95, 
+                    points_less_90 = points <= 90,
+                    price_greater_4 = lprice >= 4, 
+                    price_between_4_3 = lprice < 4 & lprice >= 3, 
+                    price_less_3 = lprice < 3,
+                    before_2010 = year < 2010, 
+                    beween_2010_2015 = (year >=2010 & year <= 2015),
+                    between_2015_2020 = (year > 2015 & year <= 2020)) %>%
+                    select(-ID,-price,-description)
 
 
-wine_index <- createDataPartition(ds_nb$province, p = 0.8, list = FALSE)
-train <- ds_nb[ wine_index, ]
-test <- ds_nb[-wine_index, ]
+set.seed(504)
+
+wine_index <- createDataPartition(wine2$province, p = 0.8, list = FALSE)
+train <- wine2[ wine_index, ]
+test <- wine2[-wine_index, ]
 
 control <- trainControl(method = "cv", number = 5)
 
-nbm <- train(province ~ .,
-             data = train, 
-             method = "naive_bayes",
-             tuneGrid = expand.grid(usekernel = c(T,F), laplace = T, adjust = T),
-             metric = "Kappa",
-             trControl = control)
+fit <- train(province ~ .,             
+	data = train,              
+	method = "knn",             
+	tuneLength = 15,             
+	trControl = control)
 
-nbm
-
-confusionMatrix(predict(nbm,test), factor(test$province))
-
-nbm$coefnames
-
-features = data.frame(nbm$coefnames) %>% 
-  mutate(nbm.coefnames = str_remove(nbm.coefnames, "TRUE")) %>% 
-    filter(nbm.coefnames != "ID")
-
-df %>% left_join(select(wine, id, province), by = "id") %>% 
-  dplyr::count(province, word) %>% 
-  filter(province %in% c("California", "Oregon")) %>% 
-  group_by(province) %>% 
-    top_n(5,n) %>% 
-    arrange(province, desc(n)) %>% 
-    mutate(exists = word %in% features$nbm.coefnames)
-
-df %>% left_join(select(wine, id, province), by = "id") %>% 
-  dplyr::count(province, word) %>% 
-  group_by(province) %>% 
-  top_n(5,n) %>% 
-  distinct(word)
-
-wino <- df %>%
-filter(word %in% features$fit.coefnames | word
-%in% c("berry", "notes", "noir", "cranberry")) %>%
-pivot_wider(id_cols = id, names_from = word,
-values_from = exists, values_fill = list(exists=0)) %>%
-right_join(select(wine,id, province, points, price)) %>%
-drop_na()
+fit
+confusionMatrix(predict(fit,test), factor(test$province)) 
 
 ```
 
-
+ANSWER: kappa = .517
 
 
 # 4. Frequency differences (2pts)
@@ -172,30 +169,47 @@ wtxt <- wine %>%
   filter(str_length(word)>3) %>%  # get rid of strings shorter than 3 characters
   group_by(word) %>% 
   mutate(total=n()) %>% 
-  ungroup() %>% 
-  filter(!(word %in% c("wine","pinot","drink","noir","vineyard","palate","notes","flavors","bottling"))) 
+  ungroup()
 
-wtxt = wtxt %>% group_by(province, word) %>% 
-  count() %>% # how many times each word is said for each province 
-    group_by(province) %>% 
-    mutate(proportion = n / sum(n)) %>% 
-    pivot_wider(id_cols = word, names_from = province, values_from = proportion) 
 
-#changing NAs to 0
-wtxt[is.na(wtxt)] = 0
+#getting word frequency for "all other pinots"
+not_ny = wtxt %>% filter(province != "New_York") %>%
+  filter(!(word %in% c("wine","pinot","drink","noir","vineyard","palate","notes","flavors","bottling","bottle","finish"))) %>% 
+  filter(total > 400) %>% 
+  group_by(province, word) %>%
+  count() %>% 
+  group_by(province) %>% 
+  mutate(proportion = n / sum(n)) %>% 
+  pivot_wider(id_cols = word, names_from = province, values_from = proportion)
 
-#creating an average across all provinces of proportion of word occurance
-wtxt$avg_prop = rowMeans(wtxt[,-1])
+#changing NAs to Os
+not_ny[is.na(not_ny)] = 0
 
-wtxt$ny_diff = wtxt$New_York - wtxt$avg_prop
+#getting mean frequency of the 5 provinces 
+not_ny$avg_prop = rowMeans(not_ny[,-1])
 
-answer = wtxt %>% arrange(desc(ny_diff)) %>% select(word, ny_diff) %>% top_n(3)
-list(answer$word)
 
+#getting word frequency for new york pinots
+ny = wtxt %>% filter(province == "New_York") %>%
+  filter(!(word %in% c("wine","pinot","drink","noir","vineyard","palate","notes","flavors","bottling","bottle","finish"))) %>% 
+  filter(total > 400) %>% 
+  group_by(province, word) %>%
+  count() %>% 
+  group_by(province) %>% 
+  mutate(proportion = n / sum(n)) %>% 
+  pivot_wider(id_cols = word, names_from = province, values_from = proportion)
+
+#checking for any NAs in ny subset 
+which(is.na(ny))
+
+#joining ny & not_ny
+ny_vs_rest = ny %>% left_join(select(not_ny, word, avg_prop), by = "word") 
+
+#creating word freq difference between ny and rest of pinots, ordering by top difference, grabbing top 3 words.
+answer = ny_vs_rest %>% mutate(diff = New_York -avg_prop) %>% arrange(desc(diff)) %>% top_n(3) 
+
+as.list(answer[,1])
 ```
 
 
-```{r}
-#arnold palmer 
-```
-
+ANSWER: cherry, tannins, concentrated
