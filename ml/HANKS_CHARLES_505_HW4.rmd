@@ -27,6 +27,7 @@ library(caret)
 library(naivebayes)
 library(tidytext)
 wine = read_rds("pinot.rds")
+
 ```
 
 # 2. Conditional Probability (3pts)
@@ -191,5 +192,10 @@ wtxt$ny_diff = wtxt$New_York - wtxt$avg_prop
 answer = wtxt %>% arrange(desc(ny_diff)) %>% select(word, ny_diff) %>% top_n(3)
 list(answer$word)
 
+```
+
+
+```{r}
+#arnold palmer 
 ```
 
