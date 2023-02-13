@@ -81,11 +81,11 @@ count(ID, word)
 fruit_burg = bp_df %>% filter(word == "fruit")
 #520 burgundy have fruit in the description 
 #So P(Fruit | Burgundy)
-p_fg = (nrow(fruit_burg))/(nrow(burg_province))
+p_fb = (nrow(fruit_burg))/(nrow(burg_province))
 #.439
 
 # P(Burgundy | Fruit) = P(Fruit | Burgundy) * P(Burgundy) / P(Fruit)
-answer = round((p_b*p_fg)/(p_f),2)
+answer = round((p_b*p_fb)/(p_f),2)
 answer
 
 
@@ -105,37 +105,12 @@ ANSWER: P(Burgundy | Fruit) = .14
 5. Report Kappa after using your model to predict provinces in the holdout (test) sample.
 
 ```{r}
-wine2 = wine %>% mutate(lprice = log(price),
-                    fyear = as.factor(year),
-                    oak = as.integer(str_detect(description, "[Oo]ak")),
-                    earth = as.integer(str_detect(description, "[Ee]arth")),
-                    cherry = as.integer(str_detect(description, "[Cc]herry")),
-                    choc = as.integer(str_detect(description, "[Cc]hocolate")),
-                    acidity = as.integer(str_detect(description, "[Aa]cidity")),
-                    nose = as.integer(str_detect(description, "[Nn]ose")),
-                    palate = as.integer(str_detect(description, "[Pp]alate")),
-                    chocolate = as.integer(str_detect(description,"[Cc]hocolate")),
-                    tart = as.integer(str_detect(description,"[Tt]art")),
-                    brisk = as.integer(str_detect(description,"[Bb]risk")),
-                    bramble = as.integer(str_detect(description,"[Bb]ramble")),
-                    aging = as.integer(str_detect(description, "[Aa]ging")),
-                    savory =as.integer(str_detect(description, "[Ss]avory")),
-                    clover = as.integer(str_detect(description, "[Cc]love")),
-                    aromas = as.integer(str_detect(description, "[Aa]romas")),
-                    fruits = as.integer(str_detect(description, "[Ff]ruits")),
-                    nose = as.integer(str_detect(description, "[Nn]ose")),
-                    points_greater_95 = points >=95, 
-                    points_less_90 = points <= 90,
-                    price_greater_4 = lprice >= 4, 
-                    price_between_4_3 = lprice < 4 & lprice >= 3, 
-                    price_less_3 = lprice < 3,
-                    before_2010 = year < 2010, 
-                    beween_2010_2015 = (year >=2010 & year <= 2015),
-                    between_2015_2020 = (year > 2015 & year <= 2020)) %>%
-                    select(-ID,-price,-description)
-
-
 set.seed(504)
+wine2 = wine %>% mutate(acidity = as.integer(str_detect(description, "[Aa]cidity")),
+                    nose = as.integer(str_detect(description, "[Nn]ose")),
+                    palate = as.integer(str_detect(description, "[Pp]alate"))) %>% 
+                select(province, acidity,nose, palate )
+
 
 wine_index <- createDataPartition(wine2$province, p = 0.8, list = FALSE)
 train <- wine2[ wine_index, ]
@@ -143,18 +118,20 @@ test <- wine2[-wine_index, ]
 
 control <- trainControl(method = "cv", number = 5)
 
-fit <- train(province ~ .,             
-	data = train,              
-	method = "knn",             
-	tuneLength = 15,             
-	trControl = control)
+m1 <- train(province ~ .,
+             data = train, 
+             method = "naive_bayes",
+             tuneGrid = expand.grid(usekernel = c(T,F), laplace = T, adjust = T),
+             metric = "Kappa",
+             trControl = control)
 
-fit
-confusionMatrix(predict(fit,test), factor(test$province)) 
+m1
 
+confusionMatrix(predict(m1,test), factor(test$province))
+                  
 ```
 
-ANSWER: kappa = .517
+ANSWER: kappa = .336
 
 
 # 4. Frequency differences (2pts)
@@ -213,3 +190,17 @@ as.list(answer[,1])
 
 
 ANSWER: cherry, tannins, concentrated
+
+
+```{r}
+wtxt %>% mutate(province = ifelse(province == "New_York", "New_York", "Other")) %>%
+filter(!(word %in% c("wine","pinot","drink","noir","vineyard","palate","notes","flavors","bottling"))) %>%
+filter(total > 400) %>%
+group_by(province, word) %>%
+count() %>%
+group_by(province) %>%
+mutate(proportion = n / sum(n)) %>%
+pivot_wider(id_cols = word, names_from = province, values_from = proportion) %>% 
+  mutate(diff = New_York - Other) %>% arrange(desc(diff)) %>% top_n(3)
+```
+

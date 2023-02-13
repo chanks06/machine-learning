@@ -1,0 +1,145 @@
+---
+title: "logistic_regression"
+output: html_document
+date: "2023-02-08"
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(tidyverse)
+library(caret)
+library(naivebayes)
+```
+
+most influential words for MARLBOROUGH 
+
+```{r}
+ wine <-  read_rds("pinot.rds") %>% 
+  mutate(province = as.numeric(province=="Marlborough")) 
+
+## create a function to extract words with totals > j
+
+wine_words <- function(df, j = 1000, stem=F){ 
+  library(tidytext)
+  library(SnowballC)
+  data(stop_words)
+
+  words <- df %>%
+    unnest_tokens(word, description) %>%
+    anti_join(stop_words) %>% # get rid of stop words
+    filter(!(word %in% c("wine","pinot","vineyard")))
+  
+  if(stem){
+    words <- words %>% 
+      mutate(word = wordStem(word))
+  }
+  
+  words <- words %>% 
+    count(id, word) %>% 
+    group_by(id) %>% 
+    mutate(exists = (n>0)) %>% 
+    ungroup %>% 
+    group_by(word) %>% 
+    mutate(total = sum(n)) %>% 
+    filter(total > j) %>% 
+    pivot_wider(id_cols = id, names_from = word, values_from = exists, values_fill = list(exists=0)) %>% 
+    right_join(dplyr::select(df,id,province)) %>% 
+    drop_na() #%>% 
+   # select(-id)
+  
+  
+  words <- replace(words, is.na(words), FALSE)
+}
+
+
+wine
+wino <- wine_words(wine)
+
+wino
+
+```
+
+
+```{r}
+set.seed(504)
+
+wine_index <- createDataPartition(wino$province, p = 0.80, list = FALSE)
+
+train <- wino[ wine_index, ]
+test <- wino[-wine_index, ]
+
+table(train$province)
+
+control <- trainControl(method = "cv", number = 5)
+
+fit <- train(province ~ .,
+             data = train, 
+             trControl = control,
+             method = "glm",
+             family = "binomial")
+
+#show the odds ratios for top coefficients
+odds_ratio <- exp(coef(fit$finalModel))
+data.frame(name = names(odds_ratio), odds_ratio = odds_ratio) %>%  
+  arrange(desc(odds_ratio)) %>% 
+  head(20)
+
+
+```
+
+most influential words fo  CASABLANCA VALLEY 
+
+```{r}
+wine2 = wine <-  read_rds("pinot.rds") %>% 
+  mutate(province = as.numeric(province=="Casablanca_Valley")) 
+
+wino2 = wine_words(wine2)
+
+#model 
+
+wine2_index <- createDataPartition(wino2$province, p = 0.80, list = FALSE)
+
+train <- wino2[ wine2_index, ]
+test <- wino2[-wine2_index, ]
+
+table(train$province)
+
+control <- trainControl(method = "cv", number = 5)
+
+fit <- train(province ~ .,
+             data = train, 
+             trControl = control,
+             method = "glm",
+             family = "binomial")
+
+#show the odds ratios for top coefficients
+odds_ratio <- exp(coef(fit$finalModel))
+data.frame(name = names(odds_ratio), odds_ratio = odds_ratio) %>%  
+  arrange(desc(odds_ratio)) %>% 
+  head(20)
+
+
+
+
+```
+
+```{r}
+
+wino_model = function(ds){
+  
+  
+  
+}
+
+
+
+```
+
+if the odds ratio is 2, the 2*100 
+17 is a really big odds ratio 
+if the wine has the word drink in the description,
+
+```{r}
+
+```
+

@@ -1,0 +1,167 @@
+---
+title: "Homework 5"
+author: "Charles Hanks"
+date: "02/08/2023"
+output: 
+  html_document:
+    df_print: kable
+    fig_width: 11
+    fig_height: 8
+---
+
+**Directions:**
+
+Please turn in **both** a knitted HTML file *and* your Rmd file on WISE.
+
+Good luck!
+
+# 1. Setup (1pt)
+
+Change the author of this RMD file to be yourself and modify the below code so that you can successfully load the 'pinot.rds' data file from your own computer.
+
+```{r setup, message=FALSE, warning=FALSE}
+knitr::opts_chunk$set(echo = TRUE, message = FALSE, warning = FALSE)
+library(tidyverse)
+library(caret)
+library(naivebayes)
+wine = read_rds("pinot.rds")
+```
+
+# 2. Logistic Concepts (3pts)
+
+Why do we call it Logistic Regression even though we are using the technique for classification?
+
+**Answer:** We call it logistic regression because the model is calculating a binomial probability, which will be a continuous variable. If one runs  `predict(fit, newdata=test)`, the result is the probability for each row. This probability is the likelihood that the response variable is or is not what we are classifying. It is for us to decide what the cutoff point is to make that decision. For example, if we are predicting if a wine in from Oregon, if this probability is above .5, it is enough to predict the wine's province as from Oregon. 
+
+# 3. Modeling (4pts)
+
+1. Train a logistic regression algorithm to classify a whether a wine comes from Marlborough,
+
+2. using 80% of your data,
+3. three features engineered from the description
+4. and 5-fold cross validation.
+5. Report Kappa after using your model to predict the province in the holdout sample.
+
+```{r}
+
+wine <-  read_rds("pinot.rds") %>% 
+  mutate(province = as.numeric(province=="Marlborough")) 
+
+## create a function to extract words with totals > j
+
+wine_words <- function(df, j = 1000, stem=F){ 
+  library(tidytext)
+  library(SnowballC)
+  data(stop_words)
+
+  words <- df %>%
+    unnest_tokens(word, description) %>%
+    anti_join(stop_words) %>% # get rid of stop words
+    filter(!(word %in% c("wine","pinot","vineyard")))
+  
+  if(stem){
+    words <- words %>% 
+      mutate(word = wordStem(word))
+  }
+  
+  words <- words %>% 
+    count(id, word) %>% 
+    group_by(id) %>% 
+    mutate(exists = (n>0)) %>% 
+    ungroup %>% 
+    group_by(word) %>% 
+    mutate(total = sum(n)) %>% 
+    filter(total > j) %>% 
+    pivot_wider(id_cols = id, names_from = word, values_from = exists, values_fill = list(exists=0)) %>% 
+    right_join(dplyr::select(df,id,province)) %>% 
+    #drop_na() #%>% 
+    dplyr::select(-id)
+  
+  
+  words <- replace(words, is.na(words), FALSE)
+}
+
+wino <- wine_words(wine)
+
+set.seed(504)
+
+wine_index <- createDataPartition(wino$province, p = 0.80, list = FALSE)
+
+train <- wino[ wine_index, ]
+test <- wino[-wine_index, ]
+
+control <- trainControl(method = "cv", number = 5)
+
+fit <- train(province ~ .,
+             data = train, 
+             trControl = control,
+             method = "glm",
+             family = "binomial")
+
+#show the odds ratios for top coefficients
+odds_ratio <- exp(coef(fit$finalModel))
+data.frame(name = names(odds_ratio), odds_ratio = odds_ratio) %>%  
+  arrange(desc(odds_ratio)) %>% 
+  head(10)
+
+#top 3 words are drink, bodied, and finish
+
+wino_marl = wino %>% dplyr::select(province, drink, bodied, finish) 
+
+wine_index <- createDataPartition(wino_marl$province, p = 0.80, list = FALSE)
+
+train <- wino_marl[ wine_index, ]
+test <- wino_marl[-wine_index, ]
+
+control <- trainControl(method = "cv", number = 5)
+
+fit <- train(province ~ .,
+             data = train, 
+             trControl = control,
+             method = "glm",
+             family = "binomial")
+
+prob <- predict(fit, newdata=test) 
+pred <- ifelse(prob > 0.5, 1, 0)
+
+confusionMatrix(factor(pred),factor(test$province))
+
+```
+ANSWER: kappa = .101
+
+# 4. Weighting (3pts)
+
+Rerun the above model with a 15 to 1 weight on Marlborough
+
+```{r}
+weight_train <- train %>% 
+  mutate(weights=if_else(province==1,15,1))
+
+fit <- train(province ~ .,
+             data = train, 
+             trControl = trainControl(method = "cv", number = 5),
+             method = "glm",
+             family = "binomial",
+             weights = weight_train$weights)
+
+prob <- predict(fit, newdata=test)
+pred <- ifelse(prob > 0.5, 1, 0)
+
+confusionMatrix(factor(pred),factor(test$province))
+```
+
+# 5. ROC Curves (5pts)
+
+Display an ROC for the model you ran in the last question and use it to explain your model's quality.
+
+```{r}
+library(pROC)
+myRoc <- roc(test$province, prob)
+plot(myRoc)
+auc(myRoc)
+```
+
+
+**Answer:** Given that my model has an AUC of .85, there is a 85% chance that my model will be able to distinguish when a wine is from Marlborough and not from Marlborough. Conversely this means that there is a 15% chance that the model will make a type 1 error (predicts Marlborough, when in reality is not from Marlborough) or type 2 error (predicts not Marlborough, when in reality it is from Marlborough). It's a pretty good model for predicting Marlborough. 
+
+*Note:* You can find a tutorial on ROC curves here: https://towardsdatascience.com/understanding-auc-roc-curve-68b2303cc9c5
