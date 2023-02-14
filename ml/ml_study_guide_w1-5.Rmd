@@ -1,0 +1,700 @@
+---
+title: "ml_midterm_study_guide"
+output: html_document
+date: "2023-02-14"
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+getwd()
+
+library(tidyverse)
+library(moderndive)
+library(caret)
+wine = read_rds("wine.rds")
+pinot = read_rds("pinot.rds")
+
+wine <- read_rds("wine.rds") %>%
+  filter(province=="Oregon" | province == "California" | province == "New York") %>% 
+  mutate(cherry=as.integer(str_detect(description,"[Cc]herry"))) %>% 
+  mutate(lprice=log(price)) %>% 
+  select(lprice, points, cherry, province)
+```
+
+Noteworthy homework problems and solutions: 
+
+## WEEK 1: Linear Regression & Ethics 
+
+Question: In which province does 'cherry' feature affect price the most? 
+
+**Answer: Oregon, see graph below**
+```{r}
+
+wine %>% group_by(cherry,province) %>% 
+  summarize(lprice = mean(lprice)) %>% 
+    ggplot() + 
+      aes(x = cherry, y = lprice, color = province) + 
+      geom_line(aes(group = province)) + 
+      geom_point() 
+```
+
+Question: Imagine that you are a manager at an E-commerce operation that sells wine online. Your employee has been building a model to distinguish New York wines from those in California and Oregon. The employee is excited to report an accuracy of 91%.
+
+Should you be impressed? Why or why not? Use simple descriptive statistics from the data to justify your answer.
+
+**Answer: No. By building a model that never chooses New York, you will be correct 91% of the time. This is because New York only has 9% of the wines in the dataset**
+
+Question: Why is understanding the vignette in the previous question important if you want to use machine learning in an ethical manner?
+
+**Answer: Because natural imbalances in data can lead to a model fitting the dominant category well, but ignoring the underrepresented category. Thus, the decisions facilitated by the model will not serve the underrepresented category very well.**
+
+
+Question: Imagine you are working on a model to predict the likelihood that an individual loses their job as the result of the covid-19 pandemic. You have a very large dataset with many hundreds of features, but you are worried that including indicators like age, income or gender might pose some ethical problems. When you discuss these concerns with your boss, she tells you to simply drop those features from the model. Does this solve the ethical issue? Why or why not?
+
+**Answer:Probably not. There are often many other features in data that can proxy for (are correlated with) these demographic variables. Thus, the notion of "gender" for instance, will likely persist in the model even with the variable removed.**
+
+
+--------------------
+
+## WEEK 2: FEATURE ENGINEERING & VARIABLE SELECTION 
+
+This code displays a graph showing the impact of having roger voss review the wine impacts the price, as well as if it is a pinot_gris or not: 
+The important take away is that 2 dummy cols were made (a true/false if taster was roger and if variety is pinot), and grouping by each outcome, then showing each average price per combination of roger and pinot. 
+
+```{r}
+wine = read_rds("wine.rds")
+
+wine %>%
+mutate(roger=taster_name=="Roger Voss") %>%
+mutate(pinot_gris=variety=="Pinot Gris") %>%
+drop_na(roger) %>%
+group_by(roger, pinot_gris) %>%
+summarise(points = mean(points)) %>%
+ggplot() +
+aes(x = pinot_gris, y = points, color = roger) +
+geom_line(aes(group = roger)) +
+geom_point()
+```
+
+Looking at year-on-year change per winery: 
+
+```{r}
+wine %>% group_by(winery, year) %>% 
+  summarize(avg_score = mean(points), n_reviews = n_distinct(id)) %>%  
+  arrange(winery, year) %>% 
+  mutate(score_change = avg_score - lag(avg_score))
+```
+
+Using fastDummmies package 
+
+```{r}
+library(fastDummies)
+
+wine %>% select(country) %>% dummy_cols() 
+
+```
+
+```{r}
+wine %>% select(country) %>% 
+  mutate(country = fct_lump(country,4)) %>% 
+  dummy_cols() %>% select(!starts_with("country_O", ignore.case = TRUE)) 
+
+?fct_lump()
+```
+
+The fct_lump() function from forcats package takes the most common values, and then lumps the rest into an other category. So `fct_lump(variety,3)` would take the 3 most common varieties from variety col and then lumps the rest in a new col `variety_Other`.
+
+```{r}
+variety = wine %>% select(price, points, variety) %>% mutate(variety = fct_lump(variety,3))
+```
+
+Then using `dummy_cols` from fastDummies package takes that new column and spreads each category into its own column with a binary value: 
+
+```{r}
+variety %>% dummy_cols(remove_selected_columns = TRUE) %>% select(-variety_Other)
+```
+
+Numerical features: 
+
+Standardizing 
+- mean-centering: x - x_bar (taking each value and subtracting the average from it) 
+- scaling x / sd(x) (dividing each value by the standard deviation)
+
+An example of engineering features using these techniques: 
+
+```{r}
+wino <- wine %>%
+  mutate(lprice=log(price)) %>% 
+  mutate(variety=fct_lump(variety,8)) %>% 
+  select(lprice, points, variety) %>% 
+  drop_na(.)
+
+unique(wino$variety)
+```
+
+*Note: each item in a factor variable counts as one feature. I.e., each variety of wine counts as one feature, even though they are all in the same column within the dataframe.*
+
+Types of resampling: 
+
+1. k-fold CV 
+2. Monte Carlo CV
+3. The bootstrap 
+
+
+```{r}
+library(caret)
+
+wino <- wine %>% 
+mutate(aus=(country=="Australia")) %>%
+mutate(shiraz=str_detect(variety,"Shiraz")) %>%
+mutate(lprice=log(price)) %>%
+drop_na(aus, shiraz) %>%
+select(lprice, points, aus, shiraz)
+
+wine_index <- createDataPartition(wino$lprice, p = 0.8, list = FALSE)
+wino_tr <- wino[ wine_index, ]
+wino_te <- wino[-wine_index, ]
+
+control <- trainControl(method="repeatedcv", number=5, repeats=3)
+
+m1 <- train(lprice ~ .,
+            data = wino_tr,
+            method = "lm", #we are training a linear model 
+            trControl = control)
+
+
+```
+```{r}
+wine_pred <- predict(m1, wino_te)
+postResample(pred=wine_pred, obs = wino_te$lprice)
+
+
+```
+
+Create 5-10 new features (in addition to points), train/test split and use newn predictors for a linear regression model for log(price)
+```{r}
+
+
+wino2 = wine %>% mutate(province = fct_lump(province, 3)) %>%
+                 mutate(lprice = log(price)) %>% 
+                 mutate(variety = fct_lump(variety, 3)) %>% 
+                 mutate(std_points = (points - mean(points))/sd(points)) %>% 
+                 mutate(era = case_when(
+                                year < 2000 ~ "nineties", 
+                                year >= 2000 & year < 2010 ~ "aughts", 
+                                year >= 2010 ~ "tens")) %>% 
+                select(id, lprice, province, variety, points, std_points, era) %>% 
+                drop_na(.)
+
+
+
+dummies = wino2 %>% select(id,province, variety) %>% dummy_cols(remove_selected_columns = TRUE) %>% select(-province_Other, -variety_Other)
+
+wino3 = wino2 %>% left_join(dummies, by = "id") %>% select(-province, -variety)
+
+
+wine_index <- createDataPartition(wino3$lprice, p = 0.8, list = FALSE)
+wino_tr <- wino3[ wine_index, ]
+wino_te <- wino3[-wine_index, ]
+
+control <- trainControl(method="repeatedcv", number=5, repeats=3)
+
+m3 <- train(lprice ~ .,
+            data = wino_tr,
+            method = "lm", #we are training a linear model 
+            trControl = control)
+
+importance = varImp(m3, scale = TRUE)
+plot(importance)
+
+```
+
+Orem's Features selection: 
+
+```{r}
+wino <- wine %>%
+mutate(country=fct_lump(country,4)) %>%
+mutate(variety=fct_lump(variety,4)) %>%
+mutate(lprice=log(price)) %>%
+select(lprice, points, country, variety) %>%
+drop_na(.)
+
+wino <- dummy_cols(wino, remove_selected_columns = T) %>%
+select(-country_Other, -variety_Other) %>%
+rename_all(funs(tolower(.))) %>%
+rename_all(funs(str_replace_all(., "-", "_"))) %>%
+rename_all(funs(str_replace_all(., " ", "_")))
+head(wino) %>%
+select(1:7)
+```
+
+```{r}
+wine_index <- createDataPartition(wino$lprice, p = 0.8, list = FALSE)
+wino_tr <- wino[ wine_index, ]
+wino_te <- wino[-wine_index, ]
+
+m2 <- train(lprice ~ .,
+  data = wino_tr,
+  method = "lm",
+  trControl = control)
+```
+
+Recursive Feature Elimination 
+
+```{r}
+x = select(wino_tr, -lprice)
+y = wino_tr$lprice
+
+control = rfeControl(functions = rfFuncs, method = "cv", number = 2)
+
+results = rfe(x,y, sizes = c(1:3), rfeControl = control)
+
+print(results)
+```
+
+
+
+## WEEK 3 
+
+How to calculate correlation: 
+
+```{r}
+wine = wine %>% mutate(lprice = log(price))
+
+wine %>% summarize(cor_p = cor(price, points), cor_lp = cor(lprice, points))
+# look! the log of price has a higher correlation with points than just regular price 
+```
+
+Calculate the correlation between log(price) and points by variety, for Oregon Chard, Pinot noir, and pinot gris
+
+```{r}
+
+wine %>% 
+  filter(province == "Oregon") %>% 
+    filter(variety %in% c("Chardonnay", "Pinot Noir", "Pinot Gris")) %>% 
+      group_by(variety) %>% 
+        summarize(cor_lp = cor(lprice, points))
+```
+
+Visualizing this correlation: 
+
+```{r}
+wine %>% 
+  filter(province == "Oregon") %>% 
+    filter(variety %in% c("Chardonnay", "Pinot Noir", "Pinot Gris")) %>% 
+      ggplot(aes(points, lprice, color = variety)) + 
+      geom_point(alpha = .5) + 
+      facet_wrap(~variety) + 
+      geom_smooth(method = lm)
+```
+
+### Interpreting coefficients given log transformations
+
+**When only the dependent/response variable is log-transformed:**
+Exponentiate the coefficient, subtract one from this number, and multiply by 100. This gives the percent increase (or decrease) in the response for every one-unit increase in the independent variable. Example: the coefficient is 0.198. (exp(0.198) – 1)* 100 = 21.9. For every one-unit increase in the independent variable, our dependent variable increases
+by about 22%
+
+```{r}
+model <- lm(lprice~points, filter(wine,province=="Oregon"))
+print(model)
+
+pct = (exp(coef(model)["points"]) - 1) * 100
+```
+We have got to exponentiate the coefficient of points: 
+```{r}
+exp(.094)
+```
+
+a 1 point rating increase equals a 9.85% increase in price on average:
+
+Formula: 
+ (e^x - 1)*100
+ 
+```{r}
+(exp(.094) -1 )*100
+```
+
+as code: 
+```{r}
+
+for(v in c("Chardonnay", "Pinot Gris","Pinot Noir")){
+m <- lm(lprice~points, filter(wine,province=="Oregon", variety==v))
+pct <- round((exp(coef(m)["points"]) - 1) * 100,2)
+print(str_c("For ",v,", a 1 point ratings increase leads to a ",pct,"% increase in price."))
+}
+
+```
+
+
+**Only independent/predictor variable(s) is log-transformed** Divide the coefficient by 100. This tells
+us that a 1% increase in the independent variable increases (or decreases) the dependent variable by
+(coefficient/100) units. Example: the coefficient is 0.198. 0.198/100 = 0.00198. For every 1% increase
+in the independent variable, our dependent variable increases by about 0.002
+
+
+When the feature (IV) is logged: 
+
+```{r}
+model <- lm(price~lpoints, filter(wine,province=="Oregon") %>% mutate(lpoints=log(points)))
+
+model
+```
+```{r}
+coef(model)["lpoints"]/100
+```
+
+Now we look at an increase in the feature.
+A 1% ratings increase means the dependent variable increases by coefficient/100. 
+
+
+### Preporcessing & BoxCox: 
+
+Box-Cox transformations use MLE to estimate λ
+
+• when λ = 1, there is no transformation (shift by 1)
+• when λ = 0, it is log transformed (special case)
+• when λ = 0.5, it is square root
+• when λ = −1, it is an inverse
+
+```{r}
+wine = read_rds("pinot.rds")
+wine %>% preProcess(method = c("BoxCox", "center", "scale")) %>% predict(wine) %>% select(-description) %>% head()
+```
+
+### THE K nearest neighbors Algorithm:
+
+1. Load the data
+2. Initialize K to your chosen number of neighbors
+3. For each example in the data
+4. Calculate the distance between the query example and the current example from the data.
+5. Add the distance and the index of the example to an ordered collection
+6. Sort the ordered collection of distances and indices from smallest to largest (in ascending order) by the
+distances
+7. Pick the first K entries from the sorted collection
+8. Get the labels of the selected K entries
+9. If regression, return the mean of the K labels
+10. If classification, return the mode of the K labels
+
+```{r}
+#adding a year as factor col 
+ wino = wine %>% mutate(year_f = as.factor(year))
+
+wino = wino %>% dummy_cols(select_columns = c("year_f"),
+                    remove_most_frequent_dummy = T, 
+                    remove_selected_columns = T) %>% 
+         mutate(cherry = str_detect(description, "cherry"), 
+                chocolate = str_detect(description, "chocolate"), 
+                earth = str_detect(description, "earth")) %>% 
+        select(-description)
+
+```
+
+
+```{r}
+set.seed(504)
+
+wino = wino %>% select(-taster_name)
+
+wine_index = createDataPartition(wino$province, p = .8, list = FALSE)
+
+train = wino[wine_index, ]
+test = wino[-wine_index,]
+
+control = trainControl(method = "cv", number = 5)
+
+fit = train(province ~ ., 
+            data = train, 
+            method = "knn", 
+            tuneLength = 15, 
+            trControl = control) 
+
+```
+
+```{r}
+confusionMatrix(predict(fit, test),factor(test$province))
+```
+
+## Week 4: Naive Bayes 
+
+$$ P(L~|~{\rm features}) = \frac{P({\rm features}~|~L)P(L)}{P({\rm features})} $$
+
+
+
+$$ P({\rm Thing 1}~|~{\rm Thing 2}) = \frac{P({\rm Thing 2}~|~ \rm{Thing 1})P(\rm{Thing 1})}{P({\rm Thing 2})} $$
+
+
+
+we are now using pinot ds: 
+```{r}
+
+wine = read_rds("pinot.rds")
+
+wino <- wine%>%
+mutate(year_f = as.factor(year)) %>%
+mutate(cherry = str_detect(description,"cherry")) %>%
+mutate(chocolate = str_detect(description,"chocolate")) %>%
+mutate(earth = str_detect(description,"earth")) %>%
+select(-description, year)
+
+```
+
+```{r}
+set.seed(504)
+
+wine_index <- createDataPartition(wino$province, p = 0.80, list = FALSE)
+train <- wino[ wine_index, ]
+test <- wino[-wine_index, ]
+
+control <- trainControl(method = "cv")
+
+fit <- train(province ~ .,
+  data = train,
+  method = "naive_bayes",
+  metric = "Kappa",
+  trControl = control)
+
+fit
+```
+
+Binning points, price, and year: 
+
+```{r}
+wino <- wino %>%
+  select(-starts_with("year_")) %>% 
+  mutate(points_f = case_when(
+    points < 90 ~ "low",
+    points >= 90 & points < 96 ~ "med",
+    points >= 96 ~ "high"
+  )
+           )  %>% 
+  mutate(price_f = case_when(
+    price < 16 ~ "low",
+    price >= 16 & price < 41 ~ "med",
+    price >= 41 ~ "high"
+  )
+           )  %>% 
+  mutate(year_f = case_when(
+    year < 2005 ~ "old",
+    year >= 2005 & year < 2011 ~ "recent",
+    year >= 2011 ~ "current"
+  )
+           ) %>% 
+  select(-price,-points,-year)
+
+  head(wino)
+  
+
+```
+rerunning with binned model: 
+
+```{r}
+train <- wino[ wine_index, ]
+test <- wino[-wine_index, ]
+
+fit <- train(province ~ .,
+             data = train, 
+             method = "naive_bayes",
+             metric = "Kappa",
+             trControl = control)
+fit
+```
+```{r}
+
+confusionMatrix(predict(fit, test),factor(test$province))
+```
+
+
+### Tidytext & frequency distributions 
+
+```{r}
+library(tidytext)
+data("stop_words")
+
+```
+
+Creating a document term matrix: 
+
+```{r}
+wine$ID = wine$id
+wine = wine %>% select(-id)
+
+
+df = wine %>% 
+  unnest_tokens(word, description) %>% # output is word column, input is description column
+  anti_join(stop_words) %>% #removing stopwords from word col 
+  filter(word !="wine") %>% filter(word != "pinot") %>% 
+  count(ID, word) %>% 
+  group_by(ID) %>% 
+  mutate(freq = n/sum(n)) %>% # frequency of that word
+  mutate(exists = (n>0)) %>% ungroup %>% 
+  group_by(word) %>% 
+  mutate(total = sum(n)) # how many times that word is used in entire ds
+
+```
+
+```{r}
+df %>% 
+  group_by(word) %>% count() %>% arrange(desc(n))
+```
+
+```{r}
+wino = df %>% 
+  filter(total > 1000) %>%  #only words that appear over 1000 times in description 
+  pivot_wider(id_cols = ID, names_from = word, values_from = exists, values_fill = list(exists = 0)) %>% 
+  merge(select(wine, ID, province), all.y = TRUE) 
+
+wino = replace(wino, is.na(wino), FALSE)
+```
+
+```{r}
+set.seed(504)
+
+wine_index <- createDataPartition(wino$province, p = 0.80, list = FALSE)
+train <- wino[ wine_index, ]
+test <- wino[-wine_index, ]
+
+fit <- train(province ~ .,
+  data = train,
+  method = "naive_bayes",
+  tuneGrid = expand.grid(usekernel = c(T,F), laplace = T, adjust = T),
+  metric = "Kappa",
+  trControl = trainControl(method = "cv"))
+
+fit
+
+```
+
+```{r}
+df %>%
+left_join(select(wine, ID, province), by = "ID") %>%
+count(province, word) %>%
+group_by(province) %>%
+top_n(5,n) %>%
+arrange(province, desc(n))
+```
+
+```{r}
+fit
+```
+```{r}
+features = data.frame(fit$coefnames) %>% mutate(fit.coefnames = str_remove(fit.coefnames, "TRUE")) %>% 
+  filter(fit.coefnames != "ID")
+
+df %>% left_join(select(wine, ID, province), by = "ID") %>% 
+  dplyr::count(province, word) %>% 
+  filter(province %in% c("California", "Oregon")) %>% 
+  group_by(province) %>% 
+  top_n(5,n) %>% 
+  arrange(province, desc(n)) %>% 
+  mutate(exists = word %in% features$fit.coefnames)
+```
+
+```{r}
+df %>% left_join(select(wine, ID, province), by = "ID") %>% 
+  dplyr:: count(province, word) %>% 
+  group_by(province) %>% 
+  top_n(5,n) %>% distinct(word)
+```
+
+```{r}
+df %>%
+left_join(select(wine, ID, province), by = "ID") %>%
+dplyr::count(province, word) %>%
+filter(!(province %in% c("California", "Oregon"))) %>%
+group_by(province) %>%
+top_n(10,n) %>%
+arrange(province, desc(n)) %>%
+mutate(exists = word %in% features$fit.coefnames)
+```
+
+
+
+
+```{r}
+wino <- df %>%
+  filter(word %in% features$fit.coefnames | word
+  %in% c("berry", "notes", "noir", "cranberry")) %>%
+pivot_wider(id_cols = ID, names_from = word,
+values_from = exists, values_fill = list(exists=0)) %>%
+right_join(select(wine,ID, province, points, price))
+
+wino <- replace(wino, is.na(wino), FALSE)
+
+wino
+```
+
+```{r}
+
+wine_index <- createDataPartition(wino$province, p = 0.80, list = FALSE)
+train <- wino[ wine_index, ]
+test <- wino[-wine_index, ]
+
+## 5-fold cross validation
+fit <- train(province ~ .,
+  data = train,
+  method = "naive_bayes",
+  tuneGrid = expand.grid(usekernel = c(T,F), laplace = T, adjust = T),
+  metric = "Kappa",
+  trControl = trainControl(method = "cv", number=5))
+
+fit
+
+```
+
+
+## WEEK 5 : Logistic Regression 
+
+p : probability of an event happening is what you think is 
+
+The odds is the ratio of the probability of event happening by the probability of event not happening: 
+p/(1-p) 
+
+The log odds is the logarithm of the odds 
+
+Creating a LR model predicting if wine is from Oregon: 
+
+```{r}
+wine <-  read_rds("pinot.rds") %>% 
+  mutate(province = as.numeric(province=="Oregon")) 
+
+wine_words <- function(df, j = 1000, stem=F){ 
+  library(tidytext)
+  library(SnowballC)
+  data(stop_words)
+
+  words <- df %>%
+    unnest_tokens(word, description) %>%
+    anti_join(stop_words) %>% # get rid of stop words
+    filter(!(word %in% c("wine","pinot","vineyard")))
+  
+  if(stem){
+    words <- words %>% 
+      mutate(word = wordStem(word))
+  }
+  
+  words <- words %>% 
+    count(id, word) %>% 
+    group_by(id) %>% 
+    mutate(exists = (n>0)) %>% 
+    ungroup %>% 
+    group_by(word) %>% 
+    mutate(total = sum(n)) %>% 
+    filter(total > j) %>% 
+    pivot_wider(id_cols = id, names_from = word, values_from = exists, values_fill = list(exists=0)) %>% 
+    right_join(select(df,id,province)) %>% 
+    #drop_na() %>% 
+    select(-id)
+  
+  
+  words <- replace(words, is.na(words), FALSE)
+}
+
+# create new dataframe with defaults from function
+wino <- wine_words(wine)
+```
+
+
+
