@@ -1,0 +1,104 @@
+---
+title: "A guided journey of k-means clustering with the TidyModels "
+output: pdf_document
+date: "2023-04-15"
+---
+
+From [this article](https://www.tidymodels.org/learn/statistics/k-means/)
+
+
+3 tidying functions of interest: 
+tidy()
+augment() 
+glance()
+
+let's also learn about `map()` and `map2()' functions while we are at it: 
+
+```{r}
+library(tidymodels)
+
+set.seed(288)
+
+centers = tibble(cluster = factor(1:3), 
+                 num_points = c(100,150,50), 
+                 x1 = c(5,0,-3), 
+                 x2 = c(-1,1,2))
+
+
+labelled_points <- 
+  centers %>%
+  mutate(
+    x1 = map2(num_points, x1, rnorm),
+    x2 = map2(num_points, x2, rnorm)
+  ) %>% 
+  select(-num_points) %>% 
+  unnest(cols = c(x1, x2))
+
+ggplot(labelled_points, aes(x1, x2, color = cluster)) +
+  geom_point(alpha = 0.3)
+
+
+```
+The kmeans() function accepts a data frame with all numeric columns as it’s primary argument.
+
+```{r}
+points <- 
+  labelled_points %>% 
+  select(-cluster)
+
+kclust <- kmeans(points, centers = 3) #kmeans() assigns each observation (consisting of x1,x2) a cluster (1-3)
+kclust
+```
+augment produces a data frame with each observation in addition to the .cluster column
+```{r}
+augment(kclust, points)
+```
+
+The tidy() function summarizes each cluster 
+```{r}
+tidy(kclust)
+```
+
+glance() gives us a single a row summmary 
+
+```{r}
+glance(kclust)
+```
+Let’s say we want to explore the effect of different choices of k, from 1 to 9, on this clustering. 
+
+```{r}
+kclusts <- 
+  tibble(k = 1:9) %>%
+  mutate(
+    kclust = map(k, ~kmeans(points, .x)),
+    tidied = map(kclust, tidy),
+    glanced = map(kclust, glance),
+    augmented = map(kclust, augment, points)
+  )
+
+
+```
+unnesting clusters 
+```{r}
+kclusts %>% unnest(cols = c(tidied))
+```
+```{r}
+assignments = kclusts %>% unnest(cols = c(augmented))
+```
+
+clusterings: 
+```{r}
+clusterings = kclusts %>% unnest(cols = c(glanced))
+```
+```{r}
+p1 = ggplot(assignments, aes(x = x1, y = x2)) + 
+  geom_point(aes(color = .cluster), alpha = .8) + facet_wrap(~k )
+```
+
+glance() lets us view trends of summary statistics across values of k. 
+```{r}
+ggplot(clusterings, aes(k, tot.withinss)) +
+  geom_line() +
+  geom_point()
+```
+
