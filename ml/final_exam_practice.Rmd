@@ -194,9 +194,32 @@ tidy(lm_fit) %>%
 
 Name one machine learning model that is sensitive to feature scaling and explain why scale matters. Name one machine learning model that is not sensitive to feature scaling and explain why it doesn't matter.
 
+One ml model that is sensitive to feature scaling is KNN because what determines the neighbors to the value the model is considering is distance. All the features in the feature space have to be on the same distance values measured by the algorithm are on the same scale. 
+
+One model that is not sensitive to feature scale is naive bayes - it based on probability of an outcome based on the frequency of occurence of a feature in the data. 
+
+Also, decision tree models are not sensitive to scaling. 
+
 ## Problem 8
 
 Run k means clustering on the bank data with 3 cluster centers using Customer_Age, Credit_Limit, Total_Revolving_Bal, Total_Trans_Ct, and Total_Trans_Amt. Show the cluster centers and comment on any interpretation.
+
+```{r}
+bank8 = bank %>% select(customer_age, credit_limit, total_revolving_bal, total_trans_ct,total_trans_amt)
+
+kclust = kmeans(bank8, centers = 3)
+
+clusty_banko = augment(kclust, bank8) %>% rename("cluster" = .cluster)
+
+ggplot(clusty_banko, aes(x = total_trans_amt, y = total_revolving_bal)) + geom_point(aes(color = cluster), alpha = .8)
+
+#cluster 3 folk have higher credit limits, higher transaction amounts
+# c 2 is middle 
+# c 1 is low credit limit, lower transaction amounts 
+```
+cluster 3 seems to be the "high rollers" -wealthier customers
+cluster 2 is in the middle
+cluster 1 are less wealthy customers 
 
 ## Problem 9
 
