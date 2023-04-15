@@ -1,0 +1,355 @@
+---
+title: "final practice part I"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+knitr::opts_knit$set(root.dir = '/Users/charleshanks/desktop/msds/spring_23/ml')
+```
+
+packages 
+```{r}
+
+library(tidyverse)
+library(tidytext)
+library(caret)
+library(fastDummies)
+library(randomForest)
+library(tidymodels)
+library(factoextra)
+library(cluster)
+library(plotly)
+library(skimr)
+library(pROC)
+
+```
+
+## Problem 1
+
+Fit a gradient boosting model to predict price in the pinot dataset (as a function of any 5 features you want). Use cross-validation to tune the hyperparameters and print out the optimal parameters. Plot the variable importance for the optimal model.
+
+```{r}
+pinot = read_rds('pinot.rds')
+pinot = pinot %>% 
+  mutate(lprice = log(price)) %>% #transforming price to log of price 
+  select(-price) %>% 
+  relocate(lprice)
+
+#what 5 features would best capture price? 
+#points, year, province
+
+wine_words <- function(df, j = 1000, stem=F){ 
+  library(tidytext)
+  library(SnowballC)
+  data(stop_words)
+
+  words <- df %>%
+    unnest_tokens(word, description) %>%
+    anti_join(stop_words) %>% # get rid of stop words
+    filter(!(word %in% c("wine","pinot","vineyard")))
+  
+  if(stem){
+    words <- words %>% 
+      mutate(word = wordStem(word))
+  }
+  
+  words <- words %>% 
+    count(id, word) %>% 
+    group_by(id) %>% 
+    mutate(exists = (n>0)) %>% 
+    ungroup %>% 
+    group_by(word) %>% 
+    mutate(total = sum(n)) %>% 
+    filter(total > j) %>% 
+    pivot_wider(id_cols = id, names_from = word, values_from = exists, values_fill = list(exists=0)) %>% 
+    right_join(select(df,id,province)) %>% 
+    #drop_na() %>% 
+    select(-id)
+  
+  
+  words <- replace(words, is.na(words), FALSE)
+}
+
+wino = wine_words(pinot, 1000)
+
+wino = wino %>% mutate(finish = as.factor(finish), 
+                bodied = as.factor(bodied))
+
+top5 = bind_cols(pinot %>% select(-description, -id), wino %>% select(finish, bodied))
+
+top5 = top5 %>% mutate(province = as.factor(province))
+
+
+# random forest model to determine highest imp variables: 
+ctrl <- trainControl(method = "cv", number = 3)
+
+wine_index <- createDataPartition(top5$lprice, p = 0.8, list = FALSE)
+train <- top5[ wine_index, ]
+test <- top5[-wine_index, ]
+
+grid.gbm = expand.grid(interaction.depth = seq(4,8,1),
+                       n.trees = seq(100,500,100),
+                       shrinkage = c(0.01,0.03,0.05), 
+                        n.minobsinnode = 10)
+
+fit.gbm <- train(lprice ~ .,
+             data = train,
+             method = "gbm",
+             tuneGrid = grid.gbm,
+             metric = "RMSE",
+             trControl = ctrl)
+
+```
+
+
+## Problem 2
+
+On the churn dataset, how many principal components do you need in order to capture at least 30% of the variance in the data? Give some interpretation of the factor loadings on PC1 and PC2.
+
+```{r}
+churn = read_rds('BankChurners.rds')
+
+churn = churn %>% rename_all(funs(str_replace_all(.,"-","_"))) %>% 
+                rename_all(funs(tolower(.))) %>% mutate(churn = as.factor(churn))
+
+#turn categorical variables into dummy_cols 
+churn_dummied = churn %>% select(-churn) %>% dummy_cols(remove_selected_columns = T)
+
+#rejoin response variable with all variables
+churn2 = bind_cols(churn %>% select(churn), churn_dummied)
+
+
+pr_churn = prcomp(x = select(churn2,-churn), scale = T, center = T)
+summary(pr_churn)
+
+```
+Answer: It takes 5 principal component to explain 30% of the variation in the dataset. 
+
+Interpretation of factor loading of PC1 and PC2: 
+
+```{r}
+rownames_to_column(as.data.frame(pr_churn$rotation)) %>%
+select(1:3) %>% 
+  filter(abs(PC1) >= .3 | abs(PC2) >= .3)
+
+#PC1: male, big credit limit, ready to buy financial products 
+#PC2: small fry guys (small transactions, low credit limit, few transactions)
+```
+
+
+## Problem 3
+
+A coworker is really excited to tell you that PCA shows MyWorkDataset3000 is 98% explained by its first principal component. You asked whether the data had been centered and scaled, and he replies that it was centered but not scaled. What (probably) happened and why is that a problem?
+
+ANSWER: There is very likely one variable that is on a much larger scale than the rest of the variables in the dataset. 
+## Problem 4
+
+What are some potential ethical concerns if you use K-means clustering to target a promotional discount for SelfCleaningRug10000 products? How might you address them?
+
+ANSWER: The k-means clustering may result in groups of individuals divided by income, race, gender, etc. You could potentially be only sending a promotional discount to a certain type of person. 
+
+How would you address them? 
+- weights in k-mean  
+
+"sensitive attributes" 
+
+The objective of clustering is to divide the data into groups so each each group is as homogenous as possible. When talk about humans, this is problematic because the KM algorithm will exclude some groups...
+
+FAIR KM: 
+"the clusters formed will try to proportionally respect the demographic characteristics of the overall dataset, hence allowing for representational fairness in clustering. In their application of Fair KM, the algorithm was able to cluster individuals according to nine attributes, while balancing five sensitive ones, such as relationship status and country of origin." <https://montrealethics.ai/research-summary-fairness-in-clustering-with-multiple-sensitive-attributes/>
+
+
+
+## Problem 5
+
+Define unsupervised learning for your non-technical coworker. If your coworker exclaims "how can it be good for anything if you don't know the answer!?!", how would you (politely) respond?
+
+Unsupervised learning is about finding patterns in the data. 
+
+## Problem 6
+
+Use tidymodels to fit a linear regression of log price against points and Cherry flavor, and plot the coefficients with a box-and-whiskers plot.
+
+```{r}
+wine = wine %>% mutate(cherry = as.numeric(str_detect(description,'[Cc]herry')))
+
+wine = wine %>% mutate(lprice = log(price)) %>% select(-price)
+
+lm_mod = linear_reg() %>% set_engine('lm')
+
+lm_fit = lm_mod %>% 
+  fit(lprice ~ points*cherry, data = wine)
+
+library(dotwhisker)
+
+tidy(lm_fit) %>% 
+  dwplot(dot_args = list(size = 2, color = "black"),
+  whisker_args = list(color = "black"),
+  vline = geom_vline(xintercept = 0, colour = "grey50", linetype = 2))
+
+```
+
+## Problem 7
+
+Name one machine learning model that is sensitive to feature scaling and explain why scale matters. Name one machine learning model that is not sensitive to feature scaling and explain why it doesn't matter.
+
+## Problem 8
+
+Run k means clustering on the bank data with 3 cluster centers using Customer_Age, Credit_Limit, Total_Revolving_Bal, Total_Trans_Ct, and Total_Trans_Amt. Show the cluster centers and comment on any interpretation.
+
+## Problem 9
+
+What is upsampling in a classification problem? When might you use it? What is an alternative technique?
+
+## Problem 10
+
+If you fit a logistic regression but are concerned about overfitting, what can you do? Suppose it's important that you stick with a modeling technique with interpretable coefficients.
+
+## Problem 11
+
+Explain what the provided code does - how does downsample_train differ from train? What might be the value of doing this?
+
+```{r}
+library(tidyverse)
+library(tidytext)
+library(caret)
+library(fastDummies)
+library(randomForest)
+# https://www.openml.org/d/1590
+
+raw_income = read_csv("../resources/openml_1590.csv", na=c("?")) %>%
+  drop_na() %>%
+  mutate(income_above_50k = class==">50K") %>%
+  select(-class) 
+
+inc_index <- createDataPartition(raw_income$income_above_50k, p = 0.80, list = FALSE)
+train <- raw_income[ inc_index, ]
+test <- raw_income[-inc_index, ]
+
+downsample_train = downSample(x = train[, colnames(raw_income) != "sex"], y=as.factor(train$sex), yname="sex")
+
+```
+
+Train a random forest to predict income_above_50k as a function of the other features, (1) using train, (2) using downsample_train. How do the confusion matrices compare?
+
+Train a logistic regression to predict income_above_50k as a function of the other features, (1) using train, (2) using downsample_train. Show the odds ratios for the top 15 features of each. How do the top variables differ?
+
+# Solutions
+
+## Problem 1
+
+## Problem 2
+
+## Problem 3
+
+Very possibly there is one variable on a much larger scale than the others. This means that one variable alone can explain a huge fraction of variation in your data. You should scale for PCA.
+
+## Problem 4
+
+Even if you do not include demographics in your predictors, you may disproportionately target some groups over others. You should investigate the implications. 
+
+Lots of possible answers here of course.
+
+## Problem 5
+
+Unsupervised learning can detect "latent" information or patterns hidden within your data, for example for discovering interesting groups of customers. In addition, unsupervised learning can be used for dimensionality reduction, which can improve model performance.
+
+## Problem 6
+
+
+
+## Problem 7
+
+KNN is sensitive to scaling because it is based on geometric distances. Decision trees are not sensitive to scaling because they depend on binary splits between datapoints along a feature.
+
+## Problem 8
+
+
+
+## Problem 9
+
+Upsampling refers to bootstrapping (sampling with replacement) from the rarer class in a classification problem to obtain an approximately balanced training population. This can be useful if your model is performing poorly by in some sense "ignoring" the rare class to maximize performance metrics. An alternative would be downsampling the abundant class.
+ 
+## Problem 10
+
+Discussion of LASSO / Ridge regression / Elastic Net.
+
+
+## Problem 11
+
+Balances the two classes before modeling.
+
+```{r}
+
+
+
+library(randomForest)
+ctrl <- trainControl(method = "cv", number = 3)
+fit_orig <- train(as.factor(income_above_50k) ~ .,
+             data = train, 
+             ntree = 20,
+             method = "rf",
+             trControl = ctrl)
+
+fit_orig
+```
+
+
+```{r}
+
+
+ctrl <- trainControl(method = "cv", number = 3)
+fit_bal <- train(as.factor(income_above_50k) ~ .,
+             data = downsample_train, 
+             ntree = 20,
+             method = "rf",
+             trControl = ctrl)
+
+fit_bal
+```
+
+```{r}
+
+
+pred <- predict(fit_orig, newdata=test)
+confusionMatrix(factor(pred),factor(as.factor(test$income_above_50k)))
+
+pred <- predict(fit_bal, newdata=test)
+confusionMatrix(factor(pred),factor(as.factor(test$income_above_50k)))
+
+
+```
+
+
+
+```{r warning=F}
+control <- trainControl(method = "cv", number = 5)
+fit <- train(as.factor(income_above_50k) ~ .,
+             data = train, 
+             trControl = control,
+             method = "glm",
+             family = "binomial")
+
+#show the odds ratios for top coefficients
+odds_ratio <- exp(coef(fit$finalModel))
+data.frame(name = names(odds_ratio), odds_ratio = odds_ratio) %>%  
+  arrange(desc(odds_ratio)) %>% 
+  head(15)
+```
+
+
+```{r warning=F}
+control <- trainControl(method = "cv", number = 5)
+fit <- train(as.factor(income_above_50k) ~ .,
+             data = downsample_train, 
+             trControl = control,
+             method = "glm",
+             family = "binomial")
+
+#show the odds ratios for top coefficients
+odds_ratio <- exp(coef(fit$finalModel))
+data.frame(name = names(odds_ratio), odds_ratio = odds_ratio) %>%  
+  arrange(desc(odds_ratio)) %>% 
+  head(15)
+```
