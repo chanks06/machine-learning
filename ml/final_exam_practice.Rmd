@@ -225,13 +225,31 @@ cluster 1 are less wealthy customers
 
 What is upsampling in a classification problem? When might you use it? What is an alternative technique?
 
+Upsampling is when you take make the number of obervations per each class equal. We do this so that when we are training a model, the model does not choose class based on prevalence, but rather by looking at the characteristics of the observation. You could also downsample the more frequent class in the dataset to balance the dataset. 
+
 ## Problem 10
 
 If you fit a logistic regression but are concerned about overfitting, what can you do? Suppose it's important that you stick with a modeling technique with interpretable coefficients.
 
+If I fit a logistic regression but I am concerned with overfitting, what can I do? I would recommend a regularization technique. It may be that a ridge regression penalty term (l2) would be effective, as that makes variables, with minor contributions to the outcome have their coefficients close to zero.  Employingi an elastic net regression model would ensure that both L1-norm and L2-norm are at play to ensure that our model is not overfitting. 
+
+["A better alternative is the penalized regression allowing to create a linear regression model that is penalized, for having too many variables in the model, by adding a constraint in the equation (James et al. 2014,P. Bruce and Bruce (2017)). This is also known as shrinkage or regularization methods.
+
+The consequence of imposing this penalty, is to reduce (i.e. shrink) the coefficient values towards zero. This allows the less contributive variables to have a coefficient close to zero or equal zero....
+
+
+Note that, in contrast to the ordinary least square regression, *ridge regression is highly affected by the scale of the predictors. Therefore, it is better to standardize (i.e., scale)* the predictors before applying the ridge regression (James et al. 2014), so that all the predictors are on the same scale.
+
+
+"](http://www.sthda.com/english/articles/37-model-selection-essentials-in-r/153-penalized-regression-essentials-ridge-lasso-elastic-net/) 
+
+
+
 ## Problem 11
 
 Explain what the provided code does - how does downsample_train differ from train? What might be the value of doing this?
+
+The downsample train has equalized the observations by sex. 
 
 ```{r}
 library(tidyverse)
@@ -240,8 +258,8 @@ library(caret)
 library(fastDummies)
 library(randomForest)
 # https://www.openml.org/d/1590
-
-raw_income = read_csv("../resources/openml_1590.csv", na=c("?")) %>%
+getwd()
+raw_income = read_csv("openml_1590.csv", na=c("?")) %>%
   drop_na() %>%
   mutate(income_above_50k = class==">50K") %>%
   select(-class) 
@@ -252,9 +270,16 @@ test <- raw_income[-inc_index, ]
 
 downsample_train = downSample(x = train[, colnames(raw_income) != "sex"], y=as.factor(train$sex), yname="sex")
 
+train %>% group_by(sex) %>% count()
+downsample_train %>% group_by(sex) %>% count()
 ```
 
 Train a random forest to predict income_above_50k as a function of the other features, (1) using train, (2) using downsample_train. How do the confusion matrices compare?
+
+```{r}
+
+```
+
 
 Train a logistic regression to predict income_above_50k as a function of the other features, (1) using train, (2) using downsample_train. Show the odds ratios for the top 15 features of each. How do the top variables differ?
 
