@@ -165,7 +165,7 @@ FAIR KM:
 
 Define unsupervised learning for your non-technical coworker. If your coworker exclaims "how can it be good for anything if you don't know the answer!?!", how would you (politely) respond?
 
-Unsupervised learning is about finding patterns in the data. 
+Unsupervised learning is about finding patterns in the data. Uncovering patterns in the data can lead to more effective feature engineering. Plus using techniques like PCA can much a model much more efficient! 
 
 ## Problem 6
 
@@ -313,10 +313,70 @@ bind_cols(test %>% select(income_above_50k)) %>%
 conf_mat(truth = income_above_50k, .pred_class)
 
 cm2 %>% summary()
+
+
+
+
 ```
 
 
 Train a logistic regression to predict income_above_50k as a function of the other features, (1) using train, (2) using downsample_train. Show the odds ratios for the top 15 features of each. How do the top variables differ?
+
+```{r}
+lr_model = logistic_reg() %>%
+set_engine("glm")
+
+income_wflow2 = workflow() %>% 
+  add_model(lr_model) %>% 
+  add_recipe(income_rec) 
+
+income_fit_lr = income_wflow2 %>% 
+  fit(data = train)
+
+###
+
+control <- trainControl(method = "cv", number = 5)
+
+fit <- train(income_above_50k ~ .,
+data = train,
+trControl = control,
+method = "glm",
+family = "binomial")
+
+fit2 <- train(income_above_50k ~ .,
+data = downsample_train,
+trControl = control,
+method = "glm",
+family = "binomial")
+#show the odds ratios for top coefficients
+odds_ratio <- exp(coef(fit$finalModel))
+data.frame(name = names(odds_ratio), odds_ratio = odds_ratio) %>%
+arrange(desc(odds_ratio)) %>%
+head()
+
+#show the odds ratios for top coefficients
+odds_ratio2 <- exp(coef(fit2$finalModel))
+data.frame(name = names(odds_ratio2), odds_ratio = odds_ratio2) %>%
+arrange(desc(odds_ratio)) %>%
+head()
+
+
+#married-AF-spouse is the top coefficient in the the balanced training model. 
+```
+```{r}
+control <- trainControl(method = "cv", number = 5)
+
+fit2 <- train(income_above_50k ~ .,
+data = downsample_train,
+trControl = control,
+method = "glm",
+family = "binomial")
+#show the odds ratios for top coefficients
+odds_ratio <- exp(coef(fit$finalModel))
+data.frame(name = names(odds_ratio), odds_ratio = odds_ratio) %>%
+arrange(desc(odds_ratio)) %>%
+head()
+```
 
 # Solutions
 
