@@ -261,7 +261,7 @@ library(randomForest)
 getwd()
 raw_income = read_csv("openml_1590.csv", na=c("?")) %>%
   drop_na() %>%
-  mutate(income_above_50k = class==">50K") %>%
+  mutate(income_above_50k = as.factor(class==">50K")) %>%
   select(-class) 
 
 inc_index <- createDataPartition(raw_income$income_above_50k, p = 0.80, list = FALSE)
@@ -277,7 +277,42 @@ downsample_train %>% group_by(sex) %>% count()
 Train a random forest to predict income_above_50k as a function of the other features, (1) using train, (2) using downsample_train. How do the confusion matrices compare?
 
 ```{r}
+income_rec <-
+  recipe(income_above_50k ~ ., data = train) %>% 
+  update_role(`native-country`, new_role = "keeper") %>% 
+  step_BoxCox(all_numeric()) %>%
+  step_dummy(all_nominal(), -all_outcomes(), -`native-country`) 
 
+
+rf_model = rand_forest(mode = "classification") %>% set_engine('ranger')
+
+
+income_wflow = workflow() %>% 
+  add_model(rf_model) %>% 
+  add_recipe(income_rec) 
+
+income_fit1 = income_wflow %>% 
+  fit(data = train)
+
+#confusion matrix 
+cm1 <- predict(income_fit1, test) %>%
+bind_cols(test %>% select(income_above_50k)) %>%
+conf_mat(truth = income_above_50k, .pred_class)
+
+cm1 %>% summary()
+```
+
+
+```{r}
+income_fit2 = income_wflow %>% 
+  fit(data = downsample_train)
+
+#confusion matrix 
+cm2 <- predict(income_fit2, test) %>%
+bind_cols(test %>% select(income_above_50k)) %>%
+conf_mat(truth = income_above_50k, .pred_class)
+
+cm2 %>% summary()
 ```
 
 
