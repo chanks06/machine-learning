@@ -50,14 +50,116 @@ wine_words <- function(df, j = 1000, stem=F){
 ```
 
 ## 1. Feature Engineering
-• Encoding categorical variables
-• Interactions
+### Encoding categorical variables
+fastDummies package
+
+example: 
+```{r}
+wine %>%
+select(variety) %>%
+mutate(variety=fct_lump(variety,4)) %>%
+dummy_cols() %>%
+head()
+```
+
+
+
+### Interactions:
+
+" two or more predictors are said to interact if their combined effect is different (less or greater) than what we would expect if we were to add the impact of each of their effects when considered alone."
+
+<http://www.feat.engineering/detecting-interaction-effects.html>
+
 • Transformations
-• Standardizing
+
+### BoxCox 
+Box-Cox transformations use MLE to estimate λ
+• when λ = 1, there is no transformation (shift by 1)
+• when λ = 0, it is log transformed (special case)
+• when λ = 0.5, it is square root
+• when λ = −1, it is an inverse
+
+```{r}
+wine %>%
+preProcess(method = c("BoxCox","center","scale")) %>%
+predict(wine) %>%
+select(-description) %>%
+head()
+```
+
+
+
+### Interpreting coefficients given log transformations
+
+**When only the dependent/response variable is log-transformed:**
+Exponentiate the coefficient, subtract one from this number, and multiply by 100. This gives the percent increase (or decrease) in the response for every one-unit increase in the independent variable. Example: the coefficient is 0.198. (exp(0.198) – 1)* 100 = 21.9. For every one-unit increase in the independent variable, our dependent variable increases
+by about 22%
+
+Example: 
+```{r}
+model <- lm(lprice~points, filter(wine,province=="Oregon"))
+print(model)
+
+pct = (exp(coef(model)["points"]) - 1) * 100
+```
+
+We have got to exponentiate the coefficient of points: 
+```{r}
+exp(.094)
+```
+
+a 1 point rating increase equals a 9.85% increase in price on average:
+
+Formula: 
+ (e^x - 1)*100
+ 
+```{r}
+(exp(.094) -1 )*100
+```
+
+as code: 
+```{r}
+
+for(v in c("Chardonnay", "Pinot Gris","Pinot Noir")){
+m <- lm(lprice~points, filter(wine,province=="Oregon", variety==v))
+pct <- round((exp(coef(m)["points"]) - 1) * 100,2)
+print(str_c("For ",v,", a 1 point ratings increase leads to a ",pct,"% increase in price."))
+}
+
+```
+
+
+**Only independent/predictor variable(s) is log-transformed** Divide the coefficient by 100. This tells
+us that a 1% increase in the independent variable increases (or decreases) the dependent variable by
+(coefficient/100) units. Example: the coefficient is 0.198. 0.198/100 = 0.00198. For every 1% increase
+in the independent variable, our dependent variable increases by about 0.002
+
+
+When the feature (IV) is logged: 
+
+```{r}
+model <- lm(price~lpoints, filter(wine,province=="Oregon") %>% mutate(lpoints=log(points)))
+
+model
+```
+```{r}
+coef(model)["lpoints"]/100
+```
+
+Now we look at an increase in the feature.
+A 1% ratings increase means the dependent variable increases by coefficient/100. 
+
+
+
+# Standardizing
 
 *Centering* is basically a technique where mean of independent variables is subtracted from all the values. It means all independent variables have zero mean. 
 
 *Scaling* is similar to centering. Predictor variables are divided by their standard deviation. This way data will have a standard deviation of one.
+
+Standardizing 
+- mean-centering: x - x_bar (taking each value and subtracting the average from it) 
+- scaling x / sd(x) (dividing each value by the standard deviation)
 
 Demonstrating what scale() does manually 
 ```{r}
@@ -89,29 +191,110 @@ ggplot(df, aes(x = xsc, y = ysc)) + geom_point(color = "blue")
 
 ## 2. KNN
 • How does it work?
+
+“The k-nearest neighbors (KNN) algorithm is a data classification method for estimating the likelihood that a data point will become a member of one group or another based on what group the data points nearest to it belong to”
+
+• In *k-NN classification*, the output is a class membership. An object is classified by a plurality vote of its neighbors, with the object being assigned to the class most common among its *k* nearest neighbors (*k* is a positive [integer](https://en.wikipedia.org/wiki/Integer), typically small). If *k* = 1, then the object is simply assigned to the class of that single nearest neighbor.
+
+• In *k-NN regression*, the output is the property value for the object. This value is the average of the values of *k* nearest neighbors. If *k* = 1, then the output is simply assigned to the value of that single nearest neighbor.
+
+It's important that all variables are scaled and centered because Knn is based on geometric distances between data points in n-dimensional space. 
+
+Algorithm
+1. Load the data
+2. Initialize K to your chosen number of neighbors
+3. For each example in the data
+4. Calculate the distance between the query example and the current example from the data.
+5. Add the distance and the index of the example to an ordered collection
+6. Sort the ordered collection of distances and indices from smallest to largest (in ascending order) by the
+distances
+7. Pick the first K entries from the sorted collection
+8. Get the labels of the selected K entries
+9. If regression, return the mean of the K labels
+10. If classification, return the mode of the K labels
+
 • Accuracy vs. Kappa
-• Leakage
+
+Kappa accuracy statistic
+• We saw that accuracy isn’t always good for evaluating classifiers.
+• κ gives us another measure by comparing our model to “expected accuracy” = how well a classifier
+would do by chance.
+• κ divides the difference by the difference between a perfect model and expected accuracy.
+
+
+• Leakage: when a variable somehow indicates the response variable. 
+
 • Tuning
+
+making a tuning plot: 
+```{r}
+ggplot(fit, metric="Kappa")
+```
+
+
 • Classification vs. Regression
 • Confusion Matrix
+```{r}
+confusionMatrix(predict(fit, test),factor(test$province))
+```
+
 
 
 ## 3. Naive Bayes
 • How does it work?
+
+$$ P(L~|~{\rm features}) = \frac{P({\rm features}~|~L)P(L)}{P({\rm features})} $$
+
+
+
+$$ P({\rm Thing 1}~|~{\rm Thing 2}) = \frac{P({\rm Thing 2}~|~ \rm{Thing 1})P(\rm{Thing 1})}{P({\rm Thing 2})} $$
+
 • What is a conditional probability?
 
 
 ## 4. Tidytext
+
 • Document-term matrix
+
+```{r}
+library(tidytext)
+data("stop_words")
+
+```
+
+Creating a document term matrix: 
+
+```{r}
+wine$ID = wine$id
+wine = wine %>% select(-id)
+
+
+df = wine %>% 
+  unnest_tokens(word, description) %>% # output is word column, input is description column
+  anti_join(stop_words) %>% #removing stopwords from word col 
+  filter(word !="wine") %>% filter(word != "pinot") %>% 
+  count(ID, word) %>% 
+  group_by(ID) %>% 
+  mutate(freq = n/sum(n)) %>% # frequency of that word
+  mutate(exists = (n>0)) %>% ungroup %>% 
+  group_by(word) %>% 
+  mutate(total = sum(n)) # how many times that word is used in entire ds
+
+```
 • tokens, stems
 
 
 ## 5. Logistic Regression
 • How does it work?
 • Why is it called regression and not classification?
-• ROC curves
-• Regularization
 
+Because the output of a logistic regression model is a probability. 
+
+• ROC curves
+Measure of different specificity / sensitivities across a spectrum of cut off points for making prediction of class. 
+
+• Regularization
+Prevents overfitting
 
 ## 6. Decision Trees
 • How do they work?
@@ -130,6 +313,16 @@ They can be computationally expensive, especially with a high ntree.
 
 ## 7. Dimensionality Reduction
 • What is curse of dimensionality?
+
+Distances between observations tend to shrink as dimensionality tends to infinity. 
+
+cgpt: 
+"As the number of features or dimensions of the data increases, the amount of data required to accurately represent the distribution of the data increases exponentially. This leads to several problems, such as increased computational complexity, overfitting, and decreased predictive performance.
+
+In high-dimensional spaces, the distance between any two points tends to become almost the same, which can make it difficult to identify patterns or make accurate predictions. As a result, it becomes more difficult to find meaningful relationships among the data points, and the accuracy of machine learning models tends to decrease as the number of dimensions increases.
+
+To overcome the curse of dimensionality, various techniques are used, such as feature selection, feature extraction, and dimensionality reduction. These techniques help to reduce the dimensionality of the data while preserving the most important information, thereby improving the performance of machine learning models."
+
 • K-means
 • Analysis of cluster centers, density plots
 • Hierarchical
@@ -142,6 +335,11 @@ They can be computationally expensive, especially with a high ntree.
 • Cluster centers, interpretation
 • Algorithm
 • LDA: when and why?
+
+Latent Dirichlet Allocation: a mathematical model for estimating topics - finding a mixture of words that is associated with each topic, while also determining the mixture of topics that describes each document. 
+- a method used in text mining? 
+- we can get a per-topic-per-word probabilities 
+<https://www.tidytextmining.com/topicmodeling.html#latent-dirichlet-allocation>
 
 
 ## 9. Deep Learning
