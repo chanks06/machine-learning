@@ -518,3 +518,188 @@ ggplot(predictions_df, aes(x = selling_price, y = .pred)) +
   labs(x = 'Actual Home Selling Price', y = 'Predicted Selling Price')
 ```
 
+## Tidymodels: classification example (datacamp)
+
+```{r}
+leads_split = initial_split(leads_df, prop = .75, strata = purchased)
+
+
+#creating the model 
+logistic_model = logistic_reg() %>% 
+  set_engine('glm') %>% 
+    set_mode('classification')
+
+logistic_fit = logistic_model %>% fit(purchased ~ total_visits + total_time, data = leads_training)
+```
+
+recipe() defines the preprocessing 
+prep() calculates statistics from the training set 
+bake() applies the preprocessing to data sets 
+
+beans 
+```{r}
+library(beans)
+
+bean_split = initial_split(beans, strata = class, propo = 3/4)
+bean_train = training(bean_split)
+bean_test = testing(bean_split)
+
+bean_val = validation_split(bean_train, strata = class, prop = 4/5)
+bean_val$splits[1]
+```
+
+basic recipe to preprocess the data prior to any dimensionality reduction steps: 
+```{r}
+library(bestNormalize)
+bean_rec <-
+  # Use the training data from the bean_val split object
+  recipe(class ~ ., data = analysis(bean_val$splits[[1]])) %>%
+  step_zv(all_numeric_predictors()) %>%
+  step_orderNorm(all_numeric_predictors()) %>% 
+  step_normalize(all_numeric_predictors())
+```
+prep for a recipe is like fit() for a model
+```{r}
+bean_rec_trained = prep(bean_rec)
+bean_rec_trained
+
+bean_validation <- bean_val$splits %>% pluck(1) %>% assessment()
+bean_val_processed = bake(bean_rec_trained, new_data = bean_validation)
+```
+
+
+PCA in tidymodels 
+```{r}
+library(ggforce)
+
+plot_validation_results <- function(recipe, dat = assessment(bean_val$splits[[1]])) {
+  recipe %>%
+    # Estimate any additional steps
+    prep() %>%
+    # Process the data (the validation set by default)
+    bake(new_data = dat) %>%
+    # Create the scatterplot matrix
+    ggplot(aes(x = .panel_x, y = .panel_y, color = class, fill = class)) +
+    geom_point(alpha = 0.4, size = 0.5) +
+    geom_autodensity(alpha = .3) +
+    facet_matrix(vars(-class), layer.diag = 2) + 
+    scale_color_brewer(palette = "Dark2") + 
+    scale_fill_brewer(palette = "Dark2")
+}
+
+bean_rec_trained %>%
+  step_pca(all_numeric_predictors(), num_comp = 4) %>% 
+  plot_validation_results() + 
+  ggtitle("Principal Component Analysis")
+```
+source: <https://www.tmwr.org/dimensionality.html>
+
+
+
+
+
+
+
+
+
+
+# USING TIDYMODELS on PINOT (our old friend)
+
+```{r}
+wine = wine %>% select(-cherry)
+
+wine_words <- function(df, j = 1000, stem=F){ 
+  library(tidytext)
+  library(SnowballC)
+  data(stop_words)
+
+  words <- df %>%
+    unnest_tokens(word, description) %>%
+    anti_join(stop_words) %>% # get rid of stop words
+    filter(!(word %in% c("wine","pinot","vineyard")))
+  
+  if(stem){
+    words <- words %>% 
+      mutate(word = wordStem(word))
+  }
+  
+  words <- words %>% 
+    count(id, word) %>% 
+    group_by(id) %>% 
+    mutate(exists = (n>0)) %>% 
+    ungroup %>% 
+    group_by(word) %>% 
+    mutate(total = sum(n)) %>% 
+    filter(total > j) %>% 
+    pivot_wider(id_cols = id, names_from = word, values_from = exists, values_fill = list(exists=0)) %>% 
+    right_join(select(df,id,province)) %>% 
+    #drop_na() %>% 
+    select(-id)
+  
+  
+  words <- replace(words, is.na(words), FALSE)
+}
+
+
+winx = wine_words(wine, j = 1000)
+
+bind_cols(wine %>% select(-description), winx %>% select(-province))
+
+word_dummies = as.data.frame(lapply(winx %>% select(-province), as.numeric))
+
+vin = bind_cols(wine %>% select(-id, -description, -province), word_dummies)
+
+```
+
+
+NOW TO DO SOME UNSUPERVISED LEARNING ON VIN!
+
+## pca
+
+```{r}
+pca_rec <- recipe(~ ., data = vin) %>% 
+  step_normalize(all_predictors()) %>% 
+  step_pca(all_predictors(), num_comp = 6, id = "pca")
+
+pca_estimates = prep(pca_rec)
+
+pca_features = pca_estimates %>% bake(new_data = NULL)
+
+pca_estimates %>% tidy(id = "pca", type = "variance") %>% filter(str_detect(terms, "percent"))
+```
+scale and center our features: 
+```{r}
+vin_features = recipe(~., data = vin) %>% 
+  step_normalize(all_predictors()) %>% 
+  prep() %>% 
+  bake(new_data = NULL)
+```
+
+making tubby clusters: 
+```{r}
+kclusts = tibble(k = 1:10) %>% 
+  mutate(
+    model = map(k, ~ kmeans(x = vin_features, centers = .x, nstart = 20)),
+    glanced = map(model, glance)) %>% 
+  unnest(cols = c(glanced))
+```
+
+
+```{r}
+kclusts %>% 
+  ggplot(mapping = aes(x = k, y = tot.withinss)) +
+  geom_line(size = 1.2, alpha = 0.5, color = "dodgerblue3") +
+  geom_point(size = 2, color = "dodgerblue3")
+
+# a very slight elbow around k = 5
+```
+
+
+```{r}
+final_kmeans = kmeans(vin_features, centers = 5, nstart = 100, iter.max = 1000)
+
+results = augment(final_kmeans, vin_features)
+```
+
+
+
